@@ -1,0 +1,2 @@
+# psdtoccb
+将photoshop的psd文件转化为cocosbuilder的ccb文件
