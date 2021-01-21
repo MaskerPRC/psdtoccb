@@ -100,7 +100,12 @@ CCB_CCNode.prototype.getDynamicAttrXml = function() {
 
 };
 CCB_CCNode.prototype.getChildrenXml = function() {
-
+	var childrenXml = "";
+	for(var child in this.children) {
+		var childXml = child.buildXmlNode();
+		childrenXml += childXml;
+	}
+	return childrenXml;
 };
 CCB_CCNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
@@ -539,7 +544,8 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 }
 
 CCB_PlistNode = function() {
-
+	this.referResourcePath = "";
+	this.children = [];
 };
 CCB_PlistNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
@@ -662,11 +668,7 @@ var CCB_NEED_ATTR_MAP = ccbNeedAttrMap.build();
 //数据区--begin
 var fntPaths = [];
 var plistPaths = [];
-var nodeTreeForCCB = {
-	rootNode: {
-		"treeTitle": "CCNode"
-	}
-};
+var nodeTreeForCCBs = [];
 //数据区--end
 
 //工具区--begin
@@ -764,7 +766,12 @@ var fntPackage = function() {
 	}
 };
 var ccbPackage = function() {
-	//根据nodeTreeForCCB对象来生成ccb文件
+	//根据nodeTreeForCCBs对象来生成ccb文件
+	for (var ccb in nodeTreeForCCBs) {
+		var ccbFileContent = ccb.buildXmlNode();
+		var filePath = ccb.referResourcePath;
+		//将内容写出到文档
+	}
 };
 //工具区--end
 
@@ -812,8 +819,26 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 //main区--begin
 var forAllNode = function(curNode, belongCcbName) {
 	var nodeType = typeOfNode(curNode);
-	var plistFolder = "./"+belongCcbName;
 
+	//对当前节点进行处理，对于不同的类型，进行不同的处理，或直接导出，或存储到数据区最后导出
+	switch(nodeType) {
+		case TypeNodeEnum.NODE_IS_CCB:
+			//构建内部ccbNode结构，插入到数据区
+			break;
+	}
+};
 
+var main = function() {
+	var rootLayer = {};
+
+	//构建fntPaths，plistPaths，nodeTreeForCCBs
+	forAllNode(rootLayer, getLayerName(rootLayer));
+
+	//打包plist，fnt，ccb
+	plistPackage();
+	fntPackage();
+	ccbPackage();
+
+	//over
 };
 //main区--end
