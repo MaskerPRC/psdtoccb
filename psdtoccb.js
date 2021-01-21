@@ -39,13 +39,13 @@ var ccbNeedAttrMap = {
 	map: {},
 	build: function() {
 		this.map[TypeNodeEnum.NODE_IS_NODE] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_SP] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_BUTTON] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_BG_SP] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_ALL] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS] = ["x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
+		this.map[TypeNodeEnum.NODE_IS_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_BUTTON] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_BG_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_ALL] = this.map[TypeNodeEnum.NODE_IS_NODE];
+		this.map[TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS] = this.map[TypeNodeEnum.NODE_IS_NODE];
 	}
 };
 var CCB_NEED_ATTR_MAP = ccbNeedAttrMap.build();
