@@ -82,7 +82,7 @@ CCB_CCNode.prototype.getVisibleXml = function() {
 			"<key>type</key>\n" +
 			"<string>Check</string>\n" +
 			"<key>value</key>\n" +
-			"<false/>\n" +
+			"</>\n" +
 			"</dict>";
 	}
 	return visibleAppendXml;
@@ -163,7 +163,7 @@ CCB_CCNode.prototype.buildXmlNode = function() {
 		"<array>\n" +
 		"<real>"+this.scaleX+"</real>\n" +
 		"<real>"+this.scaleY+"</real>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"<integer>0</integer>\n" +
 		"</array>\n" +
 		"</dict>" +
@@ -174,11 +174,11 @@ CCB_CCNode.prototype.buildXmlNode = function() {
 		"<key>type</key>\n" +
 		"<string>Check</string>\n" +
 		"<key>value</key>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"</dict>\n" +
 		"</array>\n" +
 		"<key>selected</key>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"</dict>";
 	return defaultNodeXml;
 }
@@ -396,7 +396,7 @@ CCB_CCMenuItemImage.prototype.buildXmlNode = function() {
 		"<array>\n"+
 		"<real>1</real>\n"+
 		"<real>1</real>\n"+
-		"<false/>\n"+
+		"</>\n"+
 		"<integer>0</integer>\n"+
 		"</array>\n"+
 		"</dict>\n"+
@@ -538,7 +538,7 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 		"<array>\n" +
 		"<real>1</real>\n" +
 		"<real>1</real>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"<integer>0</integer>\n" +
 		"</array>\n" +
 		"</dict>" +
@@ -551,7 +551,7 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 		"<key>type</key>\n" +
 		"<string>Check</string>\n" +
 		"<key>value</key>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"</dict>"
 		"</array>\n" +
 		"</dict>";
@@ -567,10 +567,11 @@ myInherits(CCB_PlistNode, CCB_CCNode);
 CCB_PlistNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
-		xmlChildrenNode = "<array/>";
+		xmlChildrenNode = "\n" +
+			"<array/>";
 	} else {
 		xmlChildrenNode = "\n" +
-			"<array>\n" +
+			"<array>" +
 			xmlChildrenNode +
 			"</array>";
 	}
@@ -580,7 +581,7 @@ CCB_PlistNode.prototype.buildXmlNode = function() {
 		"<plist version=\"1.0\">\n" +
 		"<dict>\n" +
 		"<key>centeredOrigin</key>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"<key>currentResolution</key>\n" +
 		"<integer>0</integer>\n" +
 		"<key>currentSequenceId</key>\n" +
@@ -593,17 +594,65 @@ CCB_PlistNode.prototype.buildXmlNode = function() {
 		"<array/>\n" +
 		"<key>jsControlled</key>\n" +
 		"<true/>\n" +
-		"<key>nodeGraph</key>" +
+		"<key>nodeGraph</key>\n" +
+		"<dict>\n" +
+		"<key>baseClass</key>\n" +
+		"<string>CCNode</string>\n" +
+		"<key>children</key>" +
 
 		xmlChildrenNode + "\n" +
 
+		"<key>customClass</key>\n" +
+		"<string></string>\n" +
+		"<key>displayName</key>\n" +
+		"<string>CCNode</string>\n" +
+		"<key>memberVarAssignmentName</key>\n" +
+		"<string></string>\n" +
+		"<key>memberVarAssignmentType</key>\n" +
+		"<integer>0</integer>\n" +
+		"<key>properties</key>\n" +
+		"<array>\n" +
+		"<dict>\n" +
+		"<key>name</key>\n" +
+		"<string>anchorPoint</string>\n" +
+		"<key>type</key>\n" +
+		"<string>Point</string>\n" +
+		"<key>value</key>\n" +
+		"<array>\n" +
+		"<real>0.0</real>\n" +
+		"<real>0.0</real>\n" +
+		"</array>\n" +
+		"</dict>\n" +
+		"<dict>\n" +
+		"<key>name</key>\n" +
+		"<string>scale</string>\n" +
+		"<key>type</key>\n" +
+		"<string>ScaleLock</string>\n" +
+		"<key>value</key>\n" +
+		"<array>\n" +
+		"<real>1</real>\n" +
+		"<real>1</real>\n" +
+		"</>\n" +
+		"<integer>0</integer>\n" +
+		"</array>\n" +
+		"</dict>\n" +
+		"<dict>\n" +
+		"<key>name</key>\n" +
+		"<string>ignoreAnchorPointForPosition</string>\n" +
+		"<key>type</key>\n" +
+		"<string>Check</string>\n" +
+		"<key>value</key>\n" +
+		"</>\n" +
+		"</dict>\n" +
+		"</array>\n" +
+		"</dict>" +
 		"<key>notes</key>\n" +
 		"<array/>\n" +
 		"<key>resolutions</key>\n" +
 		"<array>\n" +
 		"<dict>\n" +
 		"<key>centeredOrigin</key>\n" +
-		"<false/>\n" +
+		"</>\n" +
 		"<key>ext</key>\n" +
 		"<string> </string>\n" +
 		"<key>height</key>\n" +
@@ -747,13 +796,13 @@ var typeOfNode = function(node) {
 	return nodeType;
 };
 var checkSpIsBg = function(node) {
-	return false;
+	return ;
 };
 var checkFntExists = function(path) {
 	if(fntPaths.indexOf(path) !== -1) {
 		return true;
 	}
-	return false;
+	return ;
 }
 var psExportTool = function(node, name, path) {
 	//导出png到某个目录
@@ -816,7 +865,7 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 			case TypePlistEnum.PLIST_IS_SP:
 				//检测不是bg，根据大小或者其他等等
 				if(checkSpIsBg(spNode)) {
-					exportPng(spNode, false);
+					exportPng(spNode, );
 				}
 				//导出图片到某个plist目录
 				var innerPlistName = getLayerName(spNode);
