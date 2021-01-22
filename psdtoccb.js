@@ -40,6 +40,16 @@ var TypePlistEnum = {
 }
 var CCB_CCNode = function() {
 	this.type = "CCNode";
+	this.children = [];
+
+	this.x = 0.0;
+	this.y = 0.0;
+	this.anchorX = 0.0;
+	this.anchorY = 0.0;
+	this.scaleX = 0.0;
+	this.scaleY = 0.0;
+	this.rotation = 0.0;
+	this.visible = true;
 };
 CCB_CCNode.prototype.getPositionXml = function() {
 	var positionAppendXml = "";
@@ -101,7 +111,7 @@ CCB_CCNode.prototype.getDynamicAttrXml = function() {
 };
 CCB_CCNode.prototype.getChildrenXml = function() {
 	var childrenXml = "";
-	for(var child in this.children) {
+	for(var child of this.children) {
 		var childXml = child.buildXmlNode();
 		childrenXml += childXml;
 	}
@@ -174,6 +184,7 @@ CCB_CCNode.prototype.buildXmlNode = function() {
 }
 
 var CCB_CCSprite = function(){
+	CCB_CCNode.call(this);
 	this.type = "CCSprite";
 	this.referResourcePath = "";
 };
@@ -202,6 +213,7 @@ CCB_CCSprite.prototype.getDynamicAttrXml = function() {
 };
 
 var CCB_CCLabelBMFont = function(){
+	CCB_CCNode.call(this);
 	this.type = "CCSprite";
 	this.referResourcePath = "";
 };
@@ -239,6 +251,7 @@ CCB_CCLabelBMFont.prototype.getDynamicAttrXml = function() {
 };
 
 var CCB_CCMenuItemImage = function(){
+	CCB_CCNode.call(this);
 	this.type = "CCMenuItemImage";
 	this.referResourcePlist = "";
 	this.referResourcePathSel = "";
@@ -420,12 +433,13 @@ CCB_CCMenuItemImage.prototype.buildXmlNode = function() {
 	return defaultNodeXml;
 }
 
-var CCB_CCBFile = function(){
+var CCB_CCBNode = function(){
+	CCB_CCNode.call(this);
 	this.type = "CCBFile";
 	this.referResourcePath = "";
 };
-myInherits(CCB_CCBFile, CCB_CCNode);
-CCB_CCBFile.prototype.getCCBFileXml = function() {
+myInherits(CCB_CCBNode, CCB_CCNode);
+CCB_CCBNode.prototype.getCCBFileXml = function() {
 	var ccbFileAppendXml = "\n"+
 		"<dict>\n"+
 		"<key>name</key>\n"+
@@ -437,7 +451,7 @@ CCB_CCBFile.prototype.getCCBFileXml = function() {
 		"</dict>";
 	return ccbFileAppendXml;
 };
-CCB_CCBFile.prototype.getDynamicAttrXml = function() {
+CCB_CCBNode.prototype.getDynamicAttrXml = function() {
 	return this.getPositionXml() +
 		this.getVisibleXml() +
 		this.getRotationXml() +
@@ -445,6 +459,7 @@ CCB_CCBFile.prototype.getDynamicAttrXml = function() {
 };
 
 var CCB_RootNode = function(){
+	CCB_CCNode.call(this);
 	this.type = "CCNode";
 	this.referResourcePath = "";
 	this.anchorX = 0.0;
@@ -544,9 +559,11 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 }
 
 CCB_PlistNode = function() {
+	CCB_CCNode.call(this);
 	this.referResourcePath = "";
 	this.children = [];
 };
+myInherits(CCB_PlistNode, CCB_CCNode);
 CCB_PlistNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
@@ -648,21 +665,21 @@ CCB_PlistNode.prototype.buildXmlNode = function() {
 var gapChar = "@";
 var fntRootPath = "./fnt/";
 var plistRootPath = "./";
-var ccbNeedAttrMap = {
-	map: {},
-	build: function() {
-		this.map[TypeNodeEnum.NODE_IS_NODE] = ["treeTitle", "x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-		this.map[TypeNodeEnum.NODE_IS_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_BUTTON] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_BG_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_ALL] = this.map[TypeNodeEnum.NODE_IS_NODE];
-		this.map[TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS] = this.map[TypeNodeEnum.NODE_IS_NODE];
-	}
-};
-
-var CCB_NEED_ATTR_MAP = ccbNeedAttrMap.build();
+// var ccbNeedAttrMap = {
+// 	map: {},
+// 	build: function() {
+// 		this.map[TypeNodeEnum.NODE_IS_NODE] = ["treeTitle", "x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
+// 		this.map[TypeNodeEnum.NODE_IS_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_BUTTON] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_BG_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_ALL] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 		this.map[TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS] = this.map[TypeNodeEnum.NODE_IS_NODE];
+// 	}
+// };
+//
+// var CCB_NEED_ATTR_MAP = ccbNeedAttrMap.build();
 //配置区--end
 
 //数据区--begin
@@ -767,7 +784,7 @@ var fntPackage = function() {
 };
 var ccbPackage = function() {
 	//根据nodeTreeForCCBs对象来生成ccb文件
-	for (var ccb in nodeTreeForCCBs) {
+	for (var ccb of nodeTreeForCCBs) {
 		var ccbFileContent = ccb.buildXmlNode();
 		var filePath = ccb.referResourcePath;
 		//将内容写出到文档
@@ -841,4 +858,22 @@ var main = function() {
 
 	//over
 };
+
+var test = function() {
+	var ccbNode = new CCB_PlistNode();
+	var rootNode = new CCB_RootNode();
+	var node = new CCB_CCNode();
+	var node1 = new CCB_CCNode();
+	var node2 = new CCB_CCNode();
+	var node3 = new CCB_CCNode();
+	ccbNode.children.push(node);
+	ccbNode.children.push(node1);
+	ccbNode.children.push(node2);
+	ccbNode.children.push(node3);
+
+	nodeTreeForCCBs.push(ccbNode);
+
+	ccbPackage();
+};
+test();
 //main区--end
