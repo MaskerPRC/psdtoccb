@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+											 xmlns:s="library://ns.adobe.com/flex/spark" 
+											 xmlns:mx="library://ns.adobe.com/flex/mx" width="408" height="263" showStatusBar="false" creationComplete="init(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.PSDParser.PSDLayer;
+			import com.PSDParser.PSDParser;
+			
+			import flash.desktop.NativeApplication;
+			import flash.events.InvokeEvent; 
+			
+			private static var file:File=new File;
+			private static var fileStream:FileStream=new FileStream;
+			private static var psdParser:PSDParser;
+			private static var txtPrint:TextArea;
+			
+			private var openFilePath:String;
+			private var saveFilePath:String;
+			
+			var arguments:Array; 
+			var currentDir:File; 
+			public function onInvokeEvent(invocation:InvokeEvent):void { 
+				var now:String = new Date().toTimeString(); 
+				print("Invoke event received: " + now); 
+				
+				if (invocation.currentDirectory != null) 
+				{ 
+					print("Current directory=" + invocation.currentDirectory.nativePath); 
+				}  
+				else  
+				{ 
+					print("--no directory information available--"); 
+				} 
+				
+				if (invocation.arguments.length > 0) 
+				{ 
+					//var filePath:String = 
+					print("Arguments: " + invocation.arguments.toString());
+					file.nativePath = invocation.arguments[0];
+					
+					openFilePath = file.nativePath;
+					saveFilePath = file.nativePath.replace(".psd","");
+					readFile(openFilePath);
+				}  
+				else  
+				{ 
+					print("--no arguments--"); 
+				} 
+			} 
+			
+			private function init(e:Event):void
+			{
+				NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent); 
+				txtPrint=txtTrace;
+				file.addEventListener(Event.SELECT, onFileSelected);
+			}
+			
+			private function onFileSelected(event:Event):void 
+			{
+				openFilePath = file.nativePath;
+				saveFilePath = file.nativePath.replace(".psd","");
+				readFile(openFilePath);
+				
+//				if(file.isDirectory)
+//				{
+//					saveFilePath=file.nativePath;
+//					readFile(openFilePath);
+//				}	
+//				else
+//				{
+//					openFilePath=file.nativePath;
+//					//file.browseForSave("保存目录");
+//					file.browseForDirectory("保存目录");
+//				}
+			}
+			private var bytes:ByteArray=new ByteArray;
+			private function readFile(path:String):void
+			{
+				bytes.clear();
+				file.nativePath=path;
+				fileStream.open(file,FileMode.READ);
+				fileStream.readBytes(bytes);
+				fileStream.close();
+				var psdObject:Object=parsePSDData(bytes);
+				onExport(file.name, psdObject);
+			}
+			
+			
+			private function parsePSDData(bytes:ByteArray):Object
+			{
+				psdParser = PSDParser.getInstance();
+				psdParser.parse(bytes);
+				
+				//				var objectComponent:Object = { };
+				var objectComponent:Object = {width:psdParser.canvas_width,height:psdParser.canvas_height,list:[]};
+				parseComponent(psdParser,objectComponent.list);
+				
+				return objectComponent;
+			}	
+			
+			private function parseComponent(psdParser:PSDParser,objectComponent:Object):void
+			{
+				while (psdParser.allLayers.length)
+				{
+					var psdLayer 		: PSDLayer			= psdParser.allLayers.pop();
+					var isText:Boolean = psdLayer.isTextLayer();
+					var textStyle:Object = psdLayer.getTextStyleSheet();
+					
+					trace(psdLayer.type,psdLayer.name)
+					
+					if (psdLayer.type == PSDLayer.LayerType_FOLDER_CLOSED || psdLayer.type == PSDLayer.LayerType_FOLDER_OPEN)
+					{
+						var length:int=objectComponent.length;
+						objectComponent.push({$folder:psdLayer , $list:[] });
+						parseComponent(psdParser, objectComponent[length].$list);
+					}
+					else if (psdLayer.type == PSDLayer.LayerType_HIDDEN/* && psdLayer.name == PSDLayer.FOLDER_CLOSE*/)
+					{
+						break;
+					}
+					else
+					{
+						objectComponent.push(psdLayer);
+					}
+				}
+			}
+			
+			private function onImport(e:MouseEvent):void
+			{
+				file.browseForOpen("请选择PSD文件",[new FileFilter("Photoshop Files","*.psd;")]);
+			}
+			
+			private function onExport(psdName:String, psdObject:Object):void
+			{				
+				ExportUIRes.Export(psdObject,psdName,saveFilePath,chkFileName.selected,chkDirName.selected,onComplete);
+				ExportSkin.Export(psdObject,psdName,saveFilePath,chkFileName.selected,chkDirName.selected);
+			}
+			
+			private static function onComplete(_completeFileList:Array):void
+			{
+				print("completa all!!!");
+				for(var i:int=0;i<_completeFileList.length;i++)
+				{
+					print(_completeFileList[i]+"\n");
+				}
+			}
+			
+			private static var printContent:Array=[];
+			public static function print(...arg):void
+			{
+				if(printContent.length>=500)
+					printContent.shift();
+				printContent.push(arg);
+				trace.apply(null,arg);
+				
+				var str:String="";
+				for(var i:int=0;i<printContent.length;i++)
+				{
+					str += printContent[i]+"\n";
+				}
+				txtPrint.text=str;
+				txtPrint.validateNow(); 
+				txtPrint.verticalScrollPosition=txtPrint.maxVerticalScrollPosition;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:RadioButtonGroup id="radioType"/>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Button id="btnImport" right="5" top="10" width="202" height="25" label="psd文件手游开发资源导出工具"
+			  click="onImport(event)"/>
+	<mx:TextArea id="txtTrace" left="13" right="10" bottom="29" top="43"/>
+	<s:Label text="标签" height="17" id="txtTip" bottom="4" left="17" right="9"/>
+	<s:Label x="14" y="15" text="图片资源前缀"/>
+	<s:CheckBox id="chkDirName" x="90" y="11" label="目录"/>
+	<s:CheckBox id="chkFileName" x="135" y="11" label="文件名" selected="true"/>
+</s:WindowedApplication>
