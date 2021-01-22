@@ -40,14 +40,15 @@ var TypePlistEnum = {
 }
 var CCB_CCNode = function() {
 	this.type = "CCNode";
+	this.displayName = this.type;
 	this.children = [];
 
 	this.x = 0.0;
 	this.y = 0.0;
 	this.anchorX = 0.0;
 	this.anchorY = 0.0;
-	this.scaleX = 0.0;
-	this.scaleY = 0.0;
+	this.scaleX = 1.0;
+	this.scaleY = 1.0;
 	this.rotation = 0.0;
 	this.visible = true;
 };
@@ -120,10 +121,11 @@ CCB_CCNode.prototype.getChildrenXml = function() {
 CCB_CCNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
-		xmlChildrenNode = "<array/>";
+		xmlChildrenNode = "\n" +
+			"<array/>";
 	} else {
 		xmlChildrenNode = "\n" +
-			"<array>\n" +
+			"<array>" +
 			xmlChildrenNode +
 			"</array>";
 	}
@@ -131,12 +133,14 @@ CCB_CCNode.prototype.buildXmlNode = function() {
 		"<dict>\n" +
 		"<key>baseClass</key>\n" +
 		"<string>"+this.type+"</string>\n" +
-		"<key>children</key>\n" +
+		"<key>children</key>" +
+
 		""+ xmlChildrenNode +"\n" +
+
 		"<key>customClass</key>\n" +
 		"<string></string>\n" +
 		"<key>displayName</key>\n" +
-		"<string>"+this.treeTitle+"</string>\n" +
+		"<string>"+this.displayName+"</string>\n" +
 		"<key>memberVarAssignmentName</key>\n" +
 		"<string></string>\n" +
 		"<key>memberVarAssignmentType</key>\n" +
@@ -567,10 +571,11 @@ myInherits(CCB_PlistNode, CCB_CCNode);
 CCB_PlistNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
-		xmlChildrenNode = "<array/>";
+		xmlChildrenNode = "\n" +
+			"<array/>";
 	} else {
 		xmlChildrenNode = "\n" +
-			"<array>\n" +
+			"<array>" +
 			xmlChildrenNode +
 			"</array>";
 	}
@@ -716,7 +721,7 @@ var plistRootPath = "./";
 // var ccbNeedAttrMap = {
 // 	map: {},
 // 	build: function() {
-// 		this.map[TypeNodeEnum.NODE_IS_NODE] = ["treeTitle", "x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
+// 		this.map[TypeNodeEnum.NODE_IS_NODE] = ["displayName", "x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
 // 		this.map[TypeNodeEnum.NODE_IS_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
 // 		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = this.map[TypeNodeEnum.NODE_IS_NODE];
 // 		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];

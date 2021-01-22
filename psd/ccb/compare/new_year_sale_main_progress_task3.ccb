@@ -7,7 +7,7 @@
 		<key>currentResolution</key>
 		<integer>0</integer>
 		<key>currentSequenceId</key>
-		<integer>1</integer>
+		<integer>0</integer>
 		<key>fileType</key>
 		<string>CocosBuilder</string>
 		<key>fileVersion</key>
@@ -44,8 +44,8 @@
 							<string>Point</string>
 							<key>value</key>
 							<array>
-								<real>0.0</real>
-								<real>0.0</real>
+								<real>0</real>
+								<real>0</real>
 							</array>
 						</dict>
 						<dict>
@@ -70,6 +70,8 @@
 							<false/>
 						</dict>
 					</array>
+					<key>selected</key>
+					<false/>
 				</dict>
 				<dict>
 					<key>baseClass</key>
@@ -93,8 +95,8 @@
 							<string>Point</string>
 							<key>value</key>
 							<array>
-								<real>0.0</real>
-								<real>0.0</real>
+								<real>0</real>
+								<real>0</real>
 							</array>
 						</dict>
 						<dict>
@@ -119,6 +121,8 @@
 							<false/>
 						</dict>
 					</array>
+					<key>selected</key>
+					<false/>
 				</dict>
 				<dict>
 					<key>baseClass</key>
@@ -142,8 +146,8 @@
 							<string>Point</string>
 							<key>value</key>
 							<array>
-								<real>0.0</real>
-								<real>0.0</real>
+								<real>0</real>
+								<real>0</real>
 							</array>
 						</dict>
 						<dict>
@@ -168,6 +172,8 @@
 							<false/>
 						</dict>
 					</array>
+					<key>selected</key>
+					<false/>
 				</dict>
 				<dict>
 					<key>baseClass</key>
@@ -191,8 +197,8 @@
 							<string>Point</string>
 							<key>value</key>
 							<array>
-								<real>0.0</real>
-								<real>0.0</real>
+								<real>0</real>
+								<real>0</real>
 							</array>
 						</dict>
 						<dict>
@@ -217,6 +223,8 @@
 							<false/>
 						</dict>
 					</array>
+					<key>selected</key>
+					<false/>
 				</dict>
 			</array>
 			<key>customClass</key>
@@ -295,21 +303,21 @@
 					<integer>10</integer>
 				</dict>
 				<key>chainedSequenceId</key>
-				<integer>1</integer>
+				<integer>-1</integer>
 				<key>length</key>
-				<real>2</real>
+				<real>10</real>
 				<key>name</key>
 				<string>Default Timeline</string>
 				<key>offset</key>
-				<real>0.0</real>
+				<real>4.6723957061767578</real>
 				<key>position</key>
-				<real>0.0</real>
+				<real>9.1333332061767578</real>
 				<key>resolution</key>
 				<real>30</real>
 				<key>scale</key>
-				<real>225.625</real>
+				<real>128</real>
 				<key>sequenceId</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>soundChannel</key>
 				<dict>
 					<key>keyframes</key>
