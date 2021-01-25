@@ -1,7 +1,11 @@
 
+#target photoshop
+
 #include "json2.js";
 #include "json2plist.js";
 #include "ccb.js";
+
+
 
 transparency = true;
 interlaced = false;
@@ -72,7 +76,6 @@ function mainExportLoop(node){
 		exportLayerSet(node.layerSets[i]);
 	}
 }
-
 function exportArtLayer(layer){
 
 	var parent = nodeStack[nodeStack.length-1];
@@ -128,7 +131,6 @@ function exportArtLayer(layer){
 		layer.visible = false;
 	}
 }
-
 function exportLayerSet(layerSet){
 	var parent = nodeStack[nodeStack.length-1];
 
@@ -224,7 +226,6 @@ function exportLayerSet(layerSet){
 	transY -= (node.y - node.height/2);
 }
 
-//
 function getNodeX(node){
 	var left = node.bounds[0].as("px");
 	if(left < 0){
@@ -233,7 +234,6 @@ function getNodeX(node){
 	return left + getNodeWidth(node)/2;
 	// return node.bounds[0].as("px");
 }
-
 function getNodeY(node){
 	var top = node.bounds[1].as("px");
 	if(top < 0){
@@ -242,7 +242,6 @@ function getNodeY(node){
 	return originDocument.height.as("px") - top  - getNodeHeight(node)/2;
 	// return originDocument.height.as("px") - node.bounds[1].as("px");
 }
-
 function getNodeWidth(node){
 	var left = node.bounds[0].as("px");
 	var right = node.bounds[2].as("px");
@@ -254,7 +253,6 @@ function getNodeWidth(node){
 	}
     return right - left;
 }
-
 function getNodeHeight(node){
 	var top = node.bounds[1].as("px");
 	var bottom = node.bounds[3].as("px");
@@ -266,7 +264,6 @@ function getNodeHeight(node){
 	}
     return bottom - top;
 }
-
 function removeInvisibleLayers(doc) {
   for(var i=doc.artLayers.length-1;i>=0;i--) {
     try {
@@ -281,7 +278,6 @@ function removeInvisibleLayers(doc) {
     removeInvisibleLayers(doc.layerSets[i]);
   }
 }
-
 function invisibleLayers(doc){
 	for(var i=doc.artLayers.length-1;i>=0;i--) {
 	    doc.artLayers[i].allLocked = false;
@@ -293,8 +289,6 @@ function invisibleLayers(doc){
 		invisibleLayers(doc.layerSets[i]);
 	}
 }
-
-//
 
 function saveFile(name,content){
 	if ($.os.search(/windows/i) != -1) {
@@ -309,7 +303,6 @@ function saveFile(name,content){
 	outFile.write(content);
 	outFile.close();
 }
-
 function saveCurrentContentToPng(imgName,width,height){
 	var outFile = new File(exprotPath + pathSplit + imagePath + pathSplit + imgName + ".png");
 	if(outFile.exists){

@@ -2,6 +2,8 @@
 // writes a csd file that can be imported into Spine where the images
 // will be displayed in the same positions and draw order.
 
+#target photoshop
+
 // Setting defaults. 初始变量
 var writePngs = true;
 var writeTemplate = false;
