@@ -6,6 +6,7 @@
  */
 
 //JS库--begin
+#include "json2.js";
 var myInherits = function (subType, superType) {
 	var subPrototype = Object.create(superType.prototype);
 	subPrototype.constructor = subType;
