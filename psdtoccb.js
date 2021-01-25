@@ -562,13 +562,13 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 	return defaultNodeXml;
 }
 
-CCB_PlistNode = function() {
+CCB_FileNode = function() {
 	CCB_CCNode.call(this);
 	this.referResourcePath = "";
 	this.children = [];
 };
-myInherits(CCB_PlistNode, CCB_CCNode);
-CCB_PlistNode.prototype.buildXmlNode = function() {
+myInherits(CCB_FileNode, CCB_CCNode);
+CCB_FileNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
 		xmlChildrenNode = "\n" +
@@ -738,18 +738,56 @@ var plistRootPath = "./";
 //数据区--begin
 var fntPaths = [];
 var plistPaths = [];
-var nodeTreeForCCBs = [];
+var ccbFiles = [];
 //数据区--end
 
 //工具区--begin
 var getLayerName = function(layer) {
-	return ""
+	var name = layer.name;
+	var find = name.indexOf(gapChar);
+	//有前缀的情况
+	var layerName = name;
+	if(find !== -1) {
+		layerName = name.slice(find+1, name.length);
+	}
+	return layerName;
 };
 var getLayerType = function(layer) {
-	return TypeLayerEnum.LAYER_IS_NODE;
+	if (layer.layers && layer.layers.length > 0) {
+		return TypeLayerEnum.LAYER_IS_NODE;
+	}
+	else {
+		return TypeLayerEnum.LAYER_IS_SP;
+	}
+};
+var getLayerX = function(node, fatherNode) {
+	if(!fatherNode) {
+		return node.bounds[0].value;
+	} else {
+		return node.bounds[0].value - getLayerX(fatherNode);
+	}
+};
+var getLayerY = function(node, fatherNode) {
+	if(!fatherNode) {
+		return node.bounds[1].value;
+	} else {
+		return node.bounds[1].value - getLayerY(fatherNode);
+	}
+};
+var getLayerWidth = function(node) {
+
+};
+var getLayerHeight = function(node) {
+
+};
+var getIsFntLayer = function(node) {
+	if(node.textItem && node.textItem.contents) {
+		return node.textItem.contents;
+	}
+	return null;
 };
 var typeOfNode = function(node) {
-	var name = getLayerName(node);
+	var name = node.name;
 	var layerType = getLayerType(node);
 	var find = name.indexOf(gapChar);
 	//有前缀的情况
@@ -823,10 +861,14 @@ var psBuildAllFnt = function(node, path) {
 
 	}
 };
+var getIsVisibleLayer = function(node) {
+	return !!node.visible;
+};
 //打包plist
 var plistPackage = function() {
 	for (var path in plistPaths) {
 		//调用脚本去打包，并删除原目录
+
 	}
 };
 //打包fnt
@@ -837,10 +879,16 @@ var fntPackage = function() {
 };
 var ccbPackage = function() {
 	//根据nodeTreeForCCBs对象来生成ccb文件
-	for (var ccb of nodeTreeForCCBs) {
+	for (var ccb of ccbFiles) {
 		var ccbFileContent = ccb.buildXmlNode();
 		var filePath = ccb.referResourcePath;
 		//将内容写出到文档
+		var file = new File(filePath);
+		file.remove();
+		file.open("w", "TEXT");
+		file.lineFeed = "\n";
+		file.write(ccbFileContent);
+		file.close();
 	}
 };
 //工具区--end
@@ -887,13 +935,80 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 //ps操作区--end
 
 //main区--begin
-var forAllNode = function(curNode, belongCcbName) {
+var forAllNode = function(curNode, belongCcbName, fatherNode) {
 	var nodeType = typeOfNode(curNode);
 
 	//对当前节点进行处理，对于不同的类型，进行不同的处理，或直接导出，或存储到数据区最后导出
 	switch(nodeType) {
+		case TypeNodeEnum.NODE_IS_NODE:
+			//组：构建内部ccbNode结构，插入到数据区
+			var node = new CCB_CCNode();
+			var nodeLayerName = getLayerName(curNode);
+			node.displayName = nodeLayerName;
+
+			//如果有父节点，需要加入树结构，如果没有，说明还没有找到ccb节点
+			if(fatherNode) {
+				fatherNode.children.push(node);
+			}
+
+			//遍历子节点
+			for(var i=curNode.artLayers.length-1 ; i>=0 ; i--) {
+				forAllNode(curNode.artLayers[i], nodeLayerName, node);
+			}
+
+			break;
+		case TypeNodeEnum.NODE_IS_SP:
+			//layer图片：
+			//1、构建sp节点
+			var node = new CCB_CCSprite();
+			var spLayerName = getLayerName(curNode);
+			node.displayName = spLayerName;
+			node.referResourcePath = belongCcbName + "/" + spLayerName + ".png";
+
+			if(fatherNode) {
+				fatherNode.children.push(node);
+			}
+
+			//2、将图片导出到所属ccbplist目录
+			var plistPath = belongCcbName;
+			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP});
+
+			break;
 		case TypeNodeEnum.NODE_IS_CCB:
-			//构建内部ccbNode结构，插入到数据区
+			//子ccb
+
+			//1、构建ccb节点
+			var node = new CCB_CCBNode();
+			var fatherCcbName = belongCcbName;
+			var ccbLayerName = getLayerName(curNode);
+			node.displayName = ccbLayerName;
+			node.referResourcePath = fatherCcbName +"_"+ ccbLayerName + ".ccb";
+
+			if(fatherNode) {
+				fatherNode.children.push(node);
+			}
+
+			//2、创建子ccb内部Plist目录
+			var folder = new Folder(fatherCcbName +"_"+ ccbLayerName);
+			if(folder.exists) {
+				var files = folder.getFiles();
+				for(var i=files.length-1;i>=0;i--){
+					files[i].remove();
+				}
+				folder.remove();
+			}
+			new Folder(folder).create();
+
+			//3、建立新的ccb初始节点
+			var fileNode = new CCB_FileNode();
+			fileNode.referResourcePath = fatherCcbName +"_"+ ccbLayerName + ".ccb";
+			for(var i=curNode.artLayers.length-1 ; i>=0 ; i--) {
+				forAllNode(curNode.artLayers[i], fatherCcbName +"_"+ layerName, fileNode);
+			}
+
+			//4、记录file数组和plist文件夹数据
+			ccbFiles.push(fileNode);
+			plistPaths.push(folder);
 			break;
 	}
 };
@@ -901,7 +1016,7 @@ var forAllNode = function(curNode, belongCcbName) {
 var main = function() {
 	var rootLayer = {};
 
-	//构建fntPaths，plistPaths，nodeTreeForCCBs
+	//构建fntPaths，plistPaths，ccbFiles
 	forAllNode(rootLayer, getLayerName(rootLayer));
 
 	//打包plist，fnt，ccb
@@ -913,7 +1028,7 @@ var main = function() {
 };
 
 var test = function() {
-	var ccbNode = new CCB_PlistNode();
+	var ccbNode = new CCB_FileNode();
 	var rootNode = new CCB_RootNode();
 	var node = new CCB_CCNode();
 	var node1 = new CCB_CCNode();
@@ -924,7 +1039,7 @@ var test = function() {
 	ccbNode.children.push(node2);
 	ccbNode.children.push(node3);
 
-	nodeTreeForCCBs.push(ccbNode);
+	ccbFiles.push(ccbNode);
 
 	ccbPackage();
 };

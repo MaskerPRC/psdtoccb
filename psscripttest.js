@@ -2,20 +2,6 @@
 // Enables double-click launching from the Mac Finder or Windows Explorer
 #target photoshop
 
-
-//visible, name,
-
-
-
-//文本：
-// 判读 .textItem
-// 内容 .textItem.contents
-
-
-//x:
-// 内容 .bounds[0].value;
-//y:
-// 内容 .bounds[1].value;
 var getname = function() {
 	var layerRef = app.activeDocument.layers;
 	// var textItem = layerRef[0].textItem;
