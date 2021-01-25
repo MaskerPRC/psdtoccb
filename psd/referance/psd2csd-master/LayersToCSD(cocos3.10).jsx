@@ -2,6 +2,8 @@
 // writes a JSON file that can be imported into Spine where the images
 // will be displayed in the same positions and draw order.
 
+#target photoshop
+
 // Setting defaults.
 var writePngs = true;
 var writeTemplate = false;
@@ -35,25 +37,9 @@ var settings, progress;
 loadSettings();
 showDialog();
 
-function tenNum()
-{
-	return '1' + Math.floor((Math.random() * 9 + 1) * 0x10000000)
-      .toString(10)
-      .substring(1);
-}
-
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
-}
 
 function run () {
-	// Output dirs.
+	// 创建输出文件夹
 	var absProjectDir = absolutePath(projectDir);
 	new Folder(absProjectDir).create();
 	var absImagesDir = absolutePath(imagesDir);
@@ -61,16 +47,6 @@ function run () {
 	imagesFolder.create();
 	var relImagesDir = imagesFolder.getRelativeURI(absProjectDir);
 	relImagesDir = relImagesDir == "." ? "" : (relImagesDir + "/");
-
-	// Get ruler origin.
-	var xOffSet = 0, yOffSet = 0;
-	if (useRulerOrigin) {
-		var ref = new ActionReference();
-		ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
-		var desc = executeActionGet(ref);
-		xOffSet = desc.getInteger(stringIDToTypeID("rulerOriginH")) >> 16;
-		yOffSet = desc.getInteger(stringIDToTypeID("rulerOriginV")) >> 16;
-	}
 
 	activeDocument.duplicate();
 
@@ -218,11 +194,6 @@ function run () {
 			x += Math.round(width) / 2;
 			y += Math.round(height) / 2;
 
-			// Make relative to the Photoshop document ruler origin.
-			if (useRulerOrigin) {
-				x -= xOffSet * pngScale;
-				y -= activeDocument.height.as("px") * pngScale - yOffSet * pngScale; // Invert y.
-			}
 
 			json += '\t\t\t\t<AbstractNodeData Name="' + slotName + '" ActionTag="' + tenNum() + '" Tag="' + tagIndex + '" IconVisible="False" ctype="SpriteObjectData">\n';
 			tagIndex += 1;
@@ -412,7 +383,6 @@ function showDialog () {
 	dialog.center();
 	dialog.show();
 }
-
 function loadSettings () {
 	try {
 		settings = app.getCustomOptions(settingsID);
@@ -432,7 +402,6 @@ function loadSettings () {
 	if (settings.hasKey(projectDirID)) projectDir = settings.getString(projectDirID);
 	if (settings.hasKey(paddingID)) padding = settings.getDouble(paddingID);
 }
-
 function saveSettings () {
 	var settings = new ActionDescriptor();
 	settings.putBoolean(writePngsID, writePngs);
@@ -454,15 +423,6 @@ function scaleImage () {
 	var imageSize = activeDocument.width.as("px");
 	activeDocument.resizeImage(UnitValue(imageSize * pngScale, "px"), null, null, ResampleMethod.BICUBICSHARPER);
 }
-
-var historyIndex;
-function storeHistory () {
-	historyIndex = activeDocument.historyStates.length - 1;
-}
-function restoreHistory () {
-	activeDocument.activeHistoryState = activeDocument.historyStates[historyIndex];
-}
-
 function collectLayers (layer, collect) {
 	for (var i = 0, n = layer.layers.length; i < n; i++) {
 		var child = layer.layers[i];
@@ -476,13 +436,11 @@ function collectLayers (layer, collect) {
 		}
 	}
 }
-
 function hasFilePath () {
 	var ref = new ActionReference();
 	ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
 	return executeActionGet(ref).hasKey(stringIDToTypeID("fileReference"));
 }
-
 function absolutePath (path) {
 	path = trim(path);
 	if (path.length == 0)
@@ -502,20 +460,39 @@ function countAssocArray (obj) {
 		if (obj.hasOwnProperty(key)) count++;
 	return count;
 }
-
 function trim (value) {
 	return value.replace(/^\s+|\s+$/g, "");
 }
-
 function endsWith (str, suffix) {
 	return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
-
 function stripSuffix (str, suffix) {
 	if (endsWith(str.toLowerCase(), suffix.toLowerCase())) str = str.substring(0, str.length - suffix.length);
 	return str;
 }
-
 function layerName (layer) {
 	return stripSuffix(trim(layer.name), ".png").replace(/[:\/\\*\?\"\<\>\|]/g, "");
 }
+function tenNum() {
+	return '1' + Math.floor((Math.random() * 9 + 1) * 0x10000000)
+		.toString(10)
+		.substring(1);
+}
+function guid() {
+	function s4() {
+		return Math.floor((1 + Math.random()) * 0x10000)
+			.toString(16)
+			.substring(1);
+	}
+	return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+		s4() + '-' + s4() + s4() + s4();
+}
+
+var historyIndex;
+function storeHistory () {
+	historyIndex = activeDocument.historyStates.length - 1;
+}
+function restoreHistory () {
+	activeDocument.activeHistoryState = activeDocument.historyStates[historyIndex];
+}
+
