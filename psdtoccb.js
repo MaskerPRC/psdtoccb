@@ -891,7 +891,11 @@ var psExportTool = function(node, name, path) {
 	if(!exportFolder.exists) {
 		exportFolder.create();
 	}
-	app.activeDocument.saveAs(new File(exportFolder +"/"+ name), new PNGSaveOptions(), true, Extension.LOWERCASE);
+	var plistFolder = new Folder(exportFolder +"/"+path);
+	if(!plistFolder.exists) {
+		plistFolder.create();
+	}
+	app.activeDocument.saveAs(new File(exportFolder +"/"+path+"/"+name), new PNGSaveOptions(), true, Extension.LOWERCASE);
 };
 var psBuildAllFnt = function(node, path) {
 	//导出所有字体到某个目录
