@@ -1,3 +1,4 @@
+/*
 
 // Enables double-click launching from the Mac Finder or Windows Explorer
 #target photoshop
@@ -97,4 +98,9 @@ function goTextExport2(el, fileOut, path)
 	}
 }
 
-getname();
+getname();*/
+#target photoshop
+
+
+
+

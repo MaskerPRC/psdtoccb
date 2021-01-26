@@ -750,6 +750,7 @@ var plistPaths = [];
 plistPaths.indexOf = indexOf;
 var ccbFiles = [];
 ccbFiles.indexOf = indexOf;
+var originDocumentName = "";
 //数据区--end
 
 //工具区--begin
@@ -849,6 +850,31 @@ var typeOfNode = function(node) {
 	}
 	return nodeType;
 };
+var removeInvisibleLayers = function(doc) {
+	for(var i=doc.artLayers.length-1;i>=0;i--) {
+		try {
+			if(!doc.artLayers[i].visible) {
+				doc.artLayers[i].remove();
+			}
+		}
+		catch (e) {
+		}
+	}
+	for(var i=doc.layerSets.length-1;i>=0;i--) {
+		removeInvisibleLayers(doc.layerSets[i]);
+	}
+}
+var invisibleLayers = function(doc){
+	for(var i=doc.artLayers.length-1;i>=0;i--) {
+		doc.artLayers[i].allLocked = false;
+		doc.artLayers[i].visible = false;
+	}
+	for(var i=doc.layerSets.length-1;i>=0;i--) {
+		doc.layerSets[i].allLocked = false;
+		doc.layerSets[i].visible = false;
+		invisibleLayers(doc.layerSets[i]);
+	}
+}
 var checkSpIsBg = function(node) {
 	return false;
 };
@@ -860,6 +886,12 @@ var checkFntExists = function(path) {
 }
 var psExportTool = function(node, name, path) {
 	//导出png到某个目录
+	var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
+	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
+	if(!exportFolder.exists) {
+		exportFolder.create();
+	}
+	app.activeDocument.saveAs(new File(exportFolder +"/"+ name), new PNGSaveOptions(), true, Extension.LOWERCASE);
 };
 var psBuildAllFnt = function(node, path) {
 	//导出所有字体到某个目录
@@ -900,12 +932,12 @@ var ccbPackage = function() {
 		var ccbFileContent = ccb.buildXmlNode();
 		var filePath = ccb.referResourcePath;
 		//将内容写出到文档
-		var originDocumentName = app.activeDocument.fullName.name;
-		var sceneName = originDocumentName.substring(0, originDocumentName.indexOf("."));
-		var exportFolder = new Folder(new Folder(app.activeDocument.fullName.parent).fsName + "/" + sceneName);
+		var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
+		var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
 		if(!exportFolder.exists) {
 			exportFolder.create();
 		}
+		// alert(filePath);
 		var file = new File(exportFolder+"/"+filePath);
 		file.remove();
 		file.open("w", "TEXT");
@@ -945,8 +977,12 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 				//导出图片到某个plist目录
 				var innerPlistName = getLayerName(spNode);
 				var plistName = plistInfo.name;
-				var plistPath = plistRootPath + plistName;
+				var plistPath = plistName;
+				// alert(plistName)
 				psExportTool(spNode, innerPlistName, plistPath);
+				// alert(JSON.stringify(innerPlistName));
+				// alert(JSON.stringify(innerPlistName));
+				// alert(plistPath);
 				//记录之后需要打包的字体目录
 				if(plistPaths.indexOf(plistPath) !== -1 ) {
 					plistPaths.push(plistPath);
@@ -960,7 +996,7 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 //main区--begin
 var forAllNode = function(curNode, belongCcbName, fatherNode) {
 	var nodeType = typeOfNode(curNode);
-
+	curNode.visible = true;
 	//对当前节点进行处理，对于不同的类型，进行不同的处理，或直接导出，或存储到数据区最后导出
 	switch(nodeType) {
 		case TypeNodeEnum.NODE_IS_NODE:
@@ -1033,14 +1069,23 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 			plistPaths.push(folder);
 			break;
 	}
+	curNode.visible = false;
 };
 
 var main = function() {
+	var originDocument = app.activeDocument;
+	originDocumentName = originDocument.fullName;
+	var tempDocument = originDocument.duplicate();
+	app.activeDocument = tempDocument;
+
+	removeInvisibleLayers(tempDocument);
+	invisibleLayers(tempDocument);
 	var rootLayer = app.activeDocument.activeLayer;
 
 	//构建fntPaths，plistPaths，ccbFiles
-	var fileName = app.activeDocument.name.slice(0, app.activeDocument.name.indexOf("."));
+	var fileName = originDocumentName.name.slice(0, originDocumentName.name.indexOf("."));
 	// alert(fileName);
+
 	forAllNode(rootLayer, fileName);
 
 	//打包plist，fnt，ccb
@@ -1049,6 +1094,8 @@ var main = function() {
 	ccbPackage();
 
 	//over
+	tempDocument.close(SaveOptions.DONOTSAVECHANGES);
+	app.activeDocument = originDocument;
 };
 
 var test = function() {

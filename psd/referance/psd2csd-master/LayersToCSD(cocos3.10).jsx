@@ -186,6 +186,8 @@ function run () {
 
 				if (skinName != "default") new Folder(absImagesDir + skinName).create();
 				activeDocument.saveAs(new File(absImagesDir + attachmentName), new PNGSaveOptions(), true, Extension.LOWERCASE);
+				alert(absImagesDir)
+				alert(attachmentName)
 			}
 
 			restoreHistory();
