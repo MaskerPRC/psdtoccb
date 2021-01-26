@@ -1,16 +1,18 @@
 /***
  * 我们把layer理解为psd中的组或者图层或者字体
  * 我们把node理解为中间对象
- * @param node
- * @returns {string}
  */
 
 //JS库--begin
 #include "json2.js";
-var myInherits = function (subType, superType) {
-	var subPrototype = Object.create(superType.prototype);
-	subPrototype.constructor = subType;
-	subType.prototype = subPrototype;
+var debugFrom = 1;
+var indexOf = function(one){
+	for (var index = 0; index < fntPaths.length; index++) {
+		if(one === fntPaths[index]) {
+			return i;
+		}
+	}
+	return -1;
 };
 //JS库--end
 
@@ -22,6 +24,7 @@ var TypeLayerEnum = {
 	LAYER_IS_FONT: 3,
 };
 var TypeNodeEnum = {
+	NODE_IS_NONE: 0,
 	NODE_IS_SP : 1,
 	NODE_IS_NODE: 2,
 	NODE_IS_FONT_SP: 3,
@@ -39,7 +42,7 @@ var TypePlistEnum = {
 	PLIST_IS_SP : 1,
 	PLIST_IS_FNT : 2,
 }
-var CCB_CCNode = function() {
+function CCB_CCNode() {
 	this.type = "CCNode";
 	this.displayName = this.type;
 	this.children = [];
@@ -113,7 +116,8 @@ CCB_CCNode.prototype.getDynamicAttrXml = function() {
 };
 CCB_CCNode.prototype.getChildrenXml = function() {
 	var childrenXml = "";
-	for(var child of this.children) {
+	for (var index = 0; index < this.children.length; index++) {
+		var child = this.children[index];
 		var childXml = child.buildXmlNode();
 		childrenXml += childXml;
 	}
@@ -190,10 +194,12 @@ CCB_CCNode.prototype.buildXmlNode = function() {
 
 var CCB_CCSprite = function(){
 	CCB_CCNode.call(this);
+	this.anchorX = 0.50;
+	this.anchorY = 0.50;
 	this.type = "CCSprite";
 	this.referResourcePath = "";
 };
-myInherits(CCB_CCSprite, CCB_CCNode);
+CCB_CCSprite.prototype = new CCB_CCNode();
 CCB_CCSprite.prototype.getSpriteFrameXml = function() {
 	var frameAppendXml = "\n" +
 		"<dict>\n" +
@@ -222,7 +228,7 @@ var CCB_CCLabelBMFont = function(){
 	this.type = "CCSprite";
 	this.referResourcePath = "";
 };
-myInherits(CCB_CCLabelBMFont, CCB_CCNode);
+CCB_CCLabelBMFont.prototype = new CCB_CCNode();
 CCB_CCLabelBMFont.prototype.getFntFileXml = function() {
 	var fntFileAppendXml = "\n" +
 		"<dict>\n" +
@@ -263,7 +269,7 @@ var CCB_CCMenuItemImage = function(){
 	this.referResourcePathEn = "";
 	this.referResourcePathDis = "";
 };
-myInherits(CCB_CCMenuItemImage, CCB_CCNode);
+CCB_CCMenuItemImage.prototype = new CCB_CCNode();
 CCB_CCMenuItemImage.prototype.getBlockXml = function() {
 	var blockXml = "\n" +
 		"<dict>\n" +
@@ -443,7 +449,7 @@ var CCB_CCBNode = function(){
 	this.type = "CCBFile";
 	this.referResourcePath = "";
 };
-myInherits(CCB_CCBNode, CCB_CCNode);
+CCB_CCBNode.prototype = new CCB_CCNode();
 CCB_CCBNode.prototype.getCCBFileXml = function() {
 	var ccbFileAppendXml = "\n"+
 		"<dict>\n"+
@@ -472,7 +478,7 @@ var CCB_RootNode = function(){
 	this.scaleX = 1;
 	this.scaleY = 1;
 };
-myInherits(CCB_RootNode, CCB_CCNode);
+CCB_RootNode.prototype = new CCB_CCNode();
 CCB_RootNode.prototype.getCCBFileXml = function() {
 	var ccbFileAppendXml = "\n"+
 		"<dict>\n"+
@@ -563,12 +569,13 @@ CCB_RootNode.prototype.buildXmlNode = function() {
 	return defaultNodeXml;
 }
 
-CCB_FileNode = function() {
+function CCB_FileNode() {
 	CCB_CCNode.call(this);
 	this.referResourcePath = "";
 	this.children = [];
 };
-myInherits(CCB_FileNode, CCB_CCNode);
+
+CCB_FileNode.prototype = new CCB_CCNode();
 CCB_FileNode.prototype.buildXmlNode = function() {
 	var xmlChildrenNode = this.getChildrenXml();
 	if(xmlChildrenNode === "") {
@@ -738,8 +745,11 @@ var plistRootPath = "./";
 
 //数据区--begin
 var fntPaths = [];
+fntPaths.indexOf = indexOf;
 var plistPaths = [];
+plistPaths.indexOf = indexOf;
 var ccbFiles = [];
+ccbFiles.indexOf = indexOf;
 //数据区--end
 
 //工具区--begin
@@ -751,6 +761,7 @@ var getLayerName = function(layer) {
 	if(find !== -1) {
 		layerName = name.slice(find+1, name.length);
 	}
+	layerName = replaceSpace(layerName);
 	return layerName;
 };
 var getLayerType = function(layer) {
@@ -792,9 +803,9 @@ var typeOfNode = function(node) {
 	var layerType = getLayerType(node);
 	var find = name.indexOf(gapChar);
 	//有前缀的情况
-	var nodeType = TypeNodeEnum.NODE_IS_NODE;
+	var nodeType = TypeNodeEnum.NODE_IS_NONE;
 	if(find !== -1) {
-		var prefix = name.slice(0, find-1);
+		var prefix = name.slice(0, find);
 		switch(prefix) {
 			case "all":
 				nodeType = TypeNodeEnum.NODE_IS_BG_SP;
@@ -842,7 +853,7 @@ var checkSpIsBg = function(node) {
 	return false;
 };
 var checkFntExists = function(path) {
-	if(fntPaths.indexOf(path) !== -1) {
+	if(fntPaths.indexOf(path) !== -1 ) {
 		return true;
 	}
 	return false;
@@ -865,26 +876,37 @@ var psBuildAllFnt = function(node, path) {
 var getIsVisibleLayer = function(node) {
 	return !!node.visible;
 };
+var replaceSpace = function(name) {
+	return name.replace(/[:\/\\*\?\"\<\>\| ]/g, "_")
+};
 //打包plist
 var plistPackage = function() {
-	for (var path in plistPaths) {
+	for (var index = 0; index < plistPaths.length; index++) {
 		//调用脚本去打包，并删除原目录
 
 	}
 };
 //打包fnt
 var fntPackage = function() {
-	for (var path in fntPaths) {
+	for (var index = 0; index < fntPaths.length; index++) {
 		//调用脚本去打包，并删除原目录
 	}
 };
 var ccbPackage = function() {
 	//根据nodeTreeForCCBs对象来生成ccb文件
-	for (var ccb of ccbFiles) {
+	// alert(ccbFiles);
+	for (var index = 0; index < ccbFiles.length; index++) {
+		var ccb = ccbFiles[index];
 		var ccbFileContent = ccb.buildXmlNode();
 		var filePath = ccb.referResourcePath;
 		//将内容写出到文档
-		var file = new File(filePath);
+		var originDocumentName = app.activeDocument.fullName.name;
+		var sceneName = originDocumentName.substring(0, originDocumentName.indexOf("."));
+		var exportFolder = new Folder(new Folder(app.activeDocument.fullName.parent).fsName + "/" + sceneName);
+		if(!exportFolder.exists) {
+			exportFolder.create();
+		}
+		var file = new File(exportFolder+"/"+filePath);
 		file.remove();
 		file.open("w", "TEXT");
 		file.lineFeed = "\n";
@@ -926,7 +948,7 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 				var plistPath = plistRootPath + plistName;
 				psExportTool(spNode, innerPlistName, plistPath);
 				//记录之后需要打包的字体目录
-				if(plistPaths.indexOf(plistPath) === -1) {
+				if(plistPaths.indexOf(plistPath) !== -1 ) {
 					plistPaths.push(plistPath);
 				}
 				break;
@@ -964,7 +986,7 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 			var node = new CCB_CCSprite();
 			var spLayerName = getLayerName(curNode);
 			node.displayName = spLayerName;
-			node.referResourcePath = belongCcbName + "/" + spLayerName + ".png";
+			node.referResourcePath = "./"+belongCcbName + "/" + spLayerName + ".png";
 
 			if(fatherNode) {
 				fatherNode.children.push(node);
@@ -983,7 +1005,7 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 			var fatherCcbName = belongCcbName;
 			var ccbLayerName = getLayerName(curNode);
 			node.displayName = ccbLayerName;
-			node.referResourcePath = fatherCcbName +"_"+ ccbLayerName + ".ccb";
+			node.referResourcePath = "./"+fatherCcbName +"_"+ ccbLayerName + ".ccb";
 
 			if(fatherNode) {
 				fatherNode.children.push(node);
@@ -1002,11 +1024,10 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 
 			//3、建立新的ccb初始节点
 			var fileNode = new CCB_FileNode();
-			fileNode.referResourcePath = fatherCcbName +"_"+ ccbLayerName + ".ccb";
-			for(var i=curNode.artLayers.length-1 ; i>=0 ; i--) {
-				forAllNode(curNode.artLayers[i], fatherCcbName +"_"+ layerName, fileNode);
+			fileNode.referResourcePath = "./"+(fatherCcbName!==""?fatherCcbName +"_":"")+ ccbLayerName + ".ccb";
+			for(var i=curNode.layers.length-1 ; i>=0 ; i--) {
+				forAllNode(curNode.layers[i], fatherCcbName +"_"+ ccbLayerName, fileNode);
 			}
-
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
 			plistPaths.push(folder);
@@ -1015,10 +1036,12 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 };
 
 var main = function() {
-	var rootLayer = {};
+	var rootLayer = app.activeDocument.activeLayer;
 
 	//构建fntPaths，plistPaths，ccbFiles
-	forAllNode(rootLayer, getLayerName(rootLayer));
+	var fileName = app.activeDocument.name.slice(0, app.activeDocument.name.indexOf("."));
+	// alert(fileName);
+	forAllNode(rootLayer, fileName);
 
 	//打包plist，fnt，ccb
 	plistPackage();
@@ -1044,5 +1067,9 @@ var test = function() {
 
 	ccbPackage();
 };
-test();
+// try {
+main();
+// }catch(e) {
+// 	alert(JSON.stringify(e));
+// }
 //main区--end
