@@ -77,9 +77,9 @@ var getLayerX = function(node, fatherNode) {
 };
 var getLayerY = function(node, fatherNode) {
 	if(!fatherNode) {
-		return node.bounds[1].value;
+		return 200-node.bounds[1].value;
 	} else {
-		return node.bounds[1].value - getLayerY(fatherNode);
+		return 200-node.bounds[1].value - getLayerY(fatherNode);
 	}
 };
 var getLayerWidth = function(node) {
@@ -104,6 +104,9 @@ var typeOfNode = function(node) {
 		var prefix = name.slice(0, find);
 		switch(prefix) {
 			case "all":
+				nodeType = TypeNodeEnum.NODE_IS_ALL;
+				break;
+			case "bg":
 				nodeType = TypeNodeEnum.NODE_IS_BG_SP;
 				break;
 			case "ccb":
@@ -160,14 +163,33 @@ var removeInvisibleLayers = function(doc) {
 	}
 }
 var invisibleLayers = function(doc){
-	for(var i=doc.artLayers.length-1;i>=0;i--) {
-		doc.artLayers[i].allLocked = false;
-		doc.artLayers[i].visible = false;
+	if(doc && doc.artLayers) {
+		for (var i = doc.artLayers.length - 1; i >= 0; i--) {
+			doc.artLayers[i].allLocked = false;
+			doc.artLayers[i].visible = false;
+		}
 	}
-	for(var i=doc.layerSets.length-1;i>=0;i--) {
-		doc.layerSets[i].allLocked = false;
-		doc.layerSets[i].visible = false;
-		invisibleLayers(doc.layerSets[i]);
+	if(doc && doc.layerSets) {
+		for (var i = doc.layerSets.length - 1; i >= 0; i--) {
+			doc.layerSets[i].allLocked = false;
+			doc.layerSets[i].visible = false;
+			invisibleLayers(doc.layerSets[i]);
+		}
+	}
+}
+var visibleLayers = function(doc){
+	if(doc && doc.artLayers) {
+		for(var i=doc.artLayers.length-1;i>=0;i--) {
+			doc.artLayers[i].allLocked = true;
+			doc.artLayers[i].visible = true;
+		}
+	}
+	if(doc && doc.layerSets) {
+		for (var i = doc.layerSets.length - 1; i >= 0; i--) {
+			doc.layerSets[i].allLocked = true;
+			doc.layerSets[i].visible = true;
+			visibleLayers(doc.layerSets[i]);
+		}
 	}
 }
 var checkSpIsBg = function(node) {
@@ -179,6 +201,17 @@ var checkFntExists = function(path) {
 	}
 	return false;
 }
+var dupLayers = function() {
+	var desc143 = new ActionDescriptor();
+	var ref73 = new ActionReference();
+	ref73.putClass( charIDToTypeID('Dcmn') );
+	desc143.putReference( charIDToTypeID('null'), ref73 );
+	desc143.putString( charIDToTypeID('Nm  '), activeDocument.activeLayer.name );
+	var ref74 = new ActionReference();
+	ref74.putEnumerated( charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt') );
+	desc143.putReference( charIDToTypeID('Usng'), ref74 );
+	executeAction( charIDToTypeID('Mk  '), desc143, DialogModes.NO );
+};
 var psExportTool = function(node, name, path) {
 	//导出png到某个目录
 	var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
@@ -190,8 +223,10 @@ var psExportTool = function(node, name, path) {
 	if(!plistFolder.exists) {
 		plistFolder.create();
 	}
+	dupLayers();
 	app.activeDocument.trim(TrimType.TRANSPARENT);
 	app.activeDocument.saveAs(new File(exportFolder +"/"+path+"/"+name), new PNGSaveOptions(), true, Extension.LOWERCASE);
+	app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
 };
 var psBuildAllFnt = function(node, path) {
 	//导出所有字体到某个目录
@@ -278,9 +313,10 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 				//导出图片到某个plist目录
 				var innerPlistName = getLayerName(spNode);
 				var plistName = plistInfo.name;
+				var prefix = plistInfo.prefix;
 				var plistPath = plistName;
 				// alert(plistName)
-				psExportTool(spNode, innerPlistName, plistPath);
+				psExportTool(spNode, prefix+innerPlistName, plistPath);
 				// alert(JSON.stringify(innerPlistName));
 				// alert(JSON.stringify(innerPlistName));
 				// alert(plistPath);
@@ -295,7 +331,8 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 //ps操作区--end
 
 //main区--begin
-var forAllNode = function(curNode, belongCcbName, fatherNode) {
+var forAllNode = function(curNode, belongCcbName, prefix, fatherNode) {
+	prefix = (prefix!=="" ?prefix+"_" : "");
 	var nodeType = typeOfNode(curNode);
 	//对当前节点进行处理，对于不同的类型，进行不同的处理，或直接导出，或存储到数据区最后导出
 	curNode.visible = true;
@@ -312,18 +349,20 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 			}
 
 			//遍历子节点
-			for(var i=curNode.artLayers.length-1 ; i>=0 ; i--) {
-				forAllNode(curNode.artLayers[i], nodeLayerName, node);
+
+			for(var j=curNode && curNode.layers && curNode.layers.length-1; j>=0 ; j--) {
+				forAllNode(curNode.layers[j], belongCcbName, prefix+nodeLayerName, node);
 			}
 
 			break;
 		case TypeNodeEnum.NODE_IS_SP:
+		case TypeNodeEnum.NODE_IS_BG_SP:
 			//layer图片：
 			//1、构建sp节点
 			var node = new CCB_CCSprite();
 			var spLayerName = getLayerName(curNode);
 			node.displayName = spLayerName;
-			node.referResourcePath = "./"+belongCcbName + "/" + spLayerName + ".png";
+			node.referResourcePath = "./"+belongCcbName + "/" + prefix + spLayerName + ".png";
 			var x = getLayerX(curNode);
 			var y = getLayerY(curNode);
 			node.x = x;
@@ -335,7 +374,7 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 
 			//2、将图片导出到所属ccbplist目录
 			var plistPath = belongCcbName;
-			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP});
+			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: prefix});
 
 			break;
 		case TypeNodeEnum.NODE_IS_CCB:
@@ -346,7 +385,7 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 			var fatherCcbName = belongCcbName;
 			var ccbLayerName = getLayerName(curNode);
 			node.displayName = ccbLayerName;
-			node.referResourcePath = "./"+fatherCcbName +"_"+ ccbLayerName + ".ccb";
+			node.referResourcePath = "./"+fatherCcbName+prefix+ ccbLayerName + ".ccb";
 
 			if(fatherNode) {
 				fatherNode.children.push(node);
@@ -365,13 +404,36 @@ var forAllNode = function(curNode, belongCcbName, fatherNode) {
 
 			//3、建立新的ccb初始节点
 			var fileNode = new CCB_FileNode();
-			fileNode.referResourcePath = "./"+(fatherCcbName!==""?fatherCcbName +"_":"")+ ccbLayerName + ".ccb";
-			for(var i=curNode.layers.length-1 ; i>=0 ; i--) {
-				forAllNode(curNode.layers[i], fatherCcbName +"_"+ ccbLayerName, fileNode);
+			fileNode.referResourcePath = (fatherCcbName!==""?fatherCcbName +"_":"")+ ccbLayerName + ".ccb";
+			for(var i=curNode && curNode.layers && curNode.layers.length-1; i>=0 ; i--) {
+				forAllNode(curNode.layers[i], fatherCcbName +"_"+ ccbLayerName, "", fileNode);
 			}
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
 			plistPaths.push(folder);
+			break;
+		case TypeNodeEnum.NODE_IS_ALL:
+			//集合
+			//layer图片：
+			//1、构建sp节点
+			var node = new CCB_CCSprite();
+			var spLayerName = getLayerName(curNode);
+			node.displayName = spLayerName;
+			node.referResourcePath = "./"+belongCcbName + "/" + prefix+spLayerName + ".png";
+			var x = getLayerX(curNode);
+			var y = getLayerY(curNode);
+			node.x = x;
+			node.y = y;
+
+			if(fatherNode) {
+				fatherNode.children.push(node);
+			}
+			visibleLayers(curNode);
+
+			//2、将图片导出到所属ccbplist目录
+			var plistPath = belongCcbName;
+			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: prefix});
+
 			break;
 	}
 	curNode.visible = false;
@@ -391,7 +453,7 @@ var main = function() {
 	var fileName = originDocumentName.name.slice(0, originDocumentName.name.indexOf("."));
 	// alert(fileName);
 
-	forAllNode(rootLayer, fileName);
+	forAllNode(rootLayer, fileName, "");
 
 	//打包plist，fnt，ccb
 	plistPackage();
