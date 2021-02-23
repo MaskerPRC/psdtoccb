@@ -140,7 +140,7 @@ var typeOfNode = function(node) {
 	else {
 		switch(layerType) {
 			case TypeLayerEnum.LAYER_IS_NODE:
-				nodeType = TypeNodeEnum.NODE_IS_NODE;
+				nodeType = TypeNodeEnum.NODE_IS_ALL;
 				break;
 			case TypeLayerEnum.LAYER_IS_SP:
 				nodeType = TypeNodeEnum.NODE_IS_SP;
