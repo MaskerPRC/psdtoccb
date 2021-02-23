@@ -149,17 +149,20 @@ var typeOfNode = function(node) {
 	return nodeType;
 };
 var removeInvisibleLayers = function(doc) {
-	for(var i=doc.artLayers.length-1;i>=0;i--) {
-		try {
-			if(!doc.artLayers[i].visible) {
-				doc.artLayers[i].remove();
+	if(doc && doc.artLayers) {
+		for (var i = doc.artLayers.length - 1; i >= 0; i--) {
+			try {
+				if (!doc.artLayers[i].visible) {
+					doc.artLayers[i].remove();
+				}
+			} catch (e) {
 			}
 		}
-		catch (e) {
-		}
 	}
-	for(var i=doc.layerSets.length-1;i>=0;i--) {
-		removeInvisibleLayers(doc.layerSets[i]);
+	if(doc && doc.layerSets) {
+		for (var i = doc.layerSets.length - 1; i >= 0; i--) {
+			removeInvisibleLayers(doc.layerSets[i]);
+		}
 	}
 }
 var invisibleLayers = function(doc){
