@@ -334,68 +334,60 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 //ps操作区--end
 
 //main区--begin
-var forAllNode = function(curNode, belongCcbName, prefix, fatherNode) {
-	prefix = (prefix!=="" ?prefix+"_" : "");
+var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
+	resPrefixName = (resPrefixName!=="" ?resPrefixName+"_" : "");
 	var nodeType = typeOfNode(curNode);
 	//对当前节点进行处理，对于不同的类型，进行不同的处理，或直接导出，或存储到数据区最后导出
 	curNode.visible = true;
+	var node = null;
+
+	var nodeLayerName = getLayerName(curNode);
+
 	switch(nodeType) {
 		case TypeNodeEnum.NODE_IS_NODE:
 			//组：构建内部ccbNode结构，插入到数据区
-			var node = new CCB_CCNode();
-			var nodeLayerName = getLayerName(curNode);
+			node = new CCB_CCNode();
 			node.displayName = nodeLayerName;
 
-			//如果有父节点，需要加入树结构，如果没有，说明还没有找到ccb节点
-			if(fatherNode) {
-				fatherNode.children.push(node);
-			}
-
 			//遍历子节点
-
 			for(var j=curNode && curNode.layers && curNode.layers.length-1; j>=0 ; j--) {
-				forAllNode(curNode.layers[j], belongCcbName, prefix+nodeLayerName, node);
+				forAllNode(curNode.layers[j], ccbPlistName, resPrefixName+nodeLayerName, node);
 			}
-
 			break;
 		case TypeNodeEnum.NODE_IS_SP:
+		case TypeNodeEnum.NODE_IS_ALL:
 		case TypeNodeEnum.NODE_IS_BG_SP:
 			//layer图片：
 			//1、构建sp节点
-			var node = new CCB_CCSprite();
-			var spLayerName = getLayerName(curNode);
-			node.displayName = spLayerName;
-			node.referResourcePath = "./"+belongCcbName + "/" + prefix + spLayerName + ".png";
+			node = new CCB_CCSprite();
+			node.displayName = nodeLayerName;
+			node.referResourcePath = "./"+ccbPlistName + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			var x = getLayerX(curNode);
 			var y = getLayerY(curNode);
 			node.x = x;
 			node.y = y;
 
-			if(fatherNode) {
-				fatherNode.children.push(node);
+			if(nodeType === TypeNodeEnum.NODE_IS_ALL) {
+				visibleLayers(curNode);
 			}
 
-			//2、将图片导出到所属ccbplist目录
-			var plistPath = belongCcbName;
-			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: prefix});
-
+			//2、将 单张图片 或者 node集合图片 导出到所属ccbplist目录
+			var plistPath = ccbPlistName;
+			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: ccbPlistName+"_"+resPrefixName});
 			break;
 		case TypeNodeEnum.NODE_IS_CCB:
 			//子ccb
 
 			//1、构建ccb节点
-			var node = new CCB_CCBNode();
-			var fatherCcbName = belongCcbName;
-			var ccbLayerName = getLayerName(curNode);
-			node.displayName = ccbLayerName;
-			node.referResourcePath = "./"+fatherCcbName+prefix+ ccbLayerName + ".ccb";
+			node = new CCB_CCBNode();
+			var fatherCcbName = ccbPlistName;
 
-			if(fatherNode) {
-				fatherNode.children.push(node);
-			}
+			node.displayName = nodeLayerName;
+			node.referResourcePath = "./"+fatherCcbName +"_"+ nodeLayerName + ".ccb";
 
 			//2、创建子ccb内部Plist目录
-			var folder = new Folder(fatherCcbName +"_"+ ccbLayerName);
+			var subCcbPlistName = fatherCcbName +"_" + nodeLayerName;
+			var folder = new Folder();
 			if(folder.exists) {
 				var files = folder.getFiles();
 				for(var i=files.length-1;i>=0;i--){
@@ -407,38 +399,22 @@ var forAllNode = function(curNode, belongCcbName, prefix, fatherNode) {
 
 			//3、建立新的ccb初始节点
 			var fileNode = new CCB_FileNode();
-			fileNode.referResourcePath = (fatherCcbName!==""?fatherCcbName +"_":"")+ ccbLayerName + ".ccb";
+			var ccbFileName = fatherCcbName +"_" + nodeLayerName;
+			fileNode.referResourcePath = ccbFileName + ".ccb";
 			for(var i=curNode && curNode.layers && curNode.layers.length-1; i>=0 ; i--) {
-				forAllNode(curNode.layers[i], fatherCcbName +"_"+ ccbLayerName, "", fileNode);
+				forAllNode(curNode.layers[i], subCcbPlistName, "", fileNode);
 			}
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
 			plistPaths.push(folder);
 			break;
-		case TypeNodeEnum.NODE_IS_ALL:
-			//集合
-			//layer图片：
-			//1、构建sp节点
-			var node = new CCB_CCSprite();
-			var spLayerName = getLayerName(curNode);
-			node.displayName = spLayerName;
-			node.referResourcePath = "./"+belongCcbName + "/" + prefix+spLayerName + ".png";
-			var x = getLayerX(curNode);
-			var y = getLayerY(curNode);
-			node.x = x;
-			node.y = y;
-
-			if(fatherNode) {
-				fatherNode.children.push(node);
-			}
-			visibleLayers(curNode);
-
-			//2、将图片导出到所属ccbplist目录
-			var plistPath = belongCcbName;
-			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: prefix});
-
-			break;
 	}
+
+	//如果有父节点，需要加入树结构，如果没有，说明还没有找到ccb节点
+	if(fatherNode && node) {
+		fatherNode.children.push(node);
+	}
+
 	curNode.visible = false;
 };
 
