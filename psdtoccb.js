@@ -104,6 +104,7 @@ var typeOfNode = function(node) {
 		var prefix = name.slice(0, find);
 		switch(prefix) {
 			case "all":
+			case "":
 				nodeType = TypeNodeEnum.NODE_IS_ALL;
 				break;
 			case "bg":
@@ -130,8 +131,8 @@ var typeOfNode = function(node) {
 			case "fspAll":
 				nodeType = TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS;
 				break;
-			case "flb":
-				nodeType = TypeNodeEnum.NODE_IS_FONT_LB;
+			case "exp":
+				nodeType = TypeNodeEnum.NODE_IS_EXCEPTION;
 				break;
 		}
 	}
@@ -344,6 +345,8 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 	var nodeLayerName = getLayerName(curNode);
 
 	switch(nodeType) {
+		case TypeNodeEnum.NODE_IS_EXCEPTION:
+			break;
 		case TypeNodeEnum.NODE_IS_NODE:
 			//组：构建内部ccbNode结构，插入到数据区
 			node = new CCB_CCNode();
