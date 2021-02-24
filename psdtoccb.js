@@ -60,9 +60,9 @@ var getLayerName = function(layer) {
 	return layerName;
 };
 var getLayerType = function(layer) {
-	if(getIsFntLayer(layer)) {
-		return TypeLayerEnum.LAYER_IS_FONT;
-	}
+	// if(getIsFntLayer(layer)) {
+	// 	return TypeLayerEnum.LAYER_IS_FONT;
+	// }
 	if (layer.layers && layer.layers.length > 0) {
 		return TypeLayerEnum.LAYER_IS_NODE;
 	}
