@@ -96,6 +96,13 @@ var getIsFntLayer = function(node) {
 	}
 	return null;
 };
+var setPosition = function(node, layer) {
+	var x = getLayerX(layer);
+	var y = getLayerY(layer);
+	node.x = x;
+	node.y = y;
+};
+
 var typeOfNode = function(node) {
 	var name = node.name;
 	var layerType = getLayerType(node);
@@ -401,10 +408,7 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//1、构建sp节点
 			node = new CCB_CCSprite();
 			node.displayName = nodeLayerName;
-			var x = getLayerX(curNode);
-			var y = getLayerY(curNode);
-			node.x = x;
-			node.y = y;
+			setPosition(node, curNode);
 
 			if(nodeType === TypeNodeEnum.NODE_IS_ALL) {
 				visibleLayers(curNode);
@@ -422,10 +426,8 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			node = new CCB_CCLabelBMFont();
 			node.displayName = nodeLayerName;
 			// node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
-			var x = getLayerX(curNode);
-			var y = getLayerY(curNode);
-			node.x = x;
-			node.y = y;
+			setPosition(node, curNode);
+
 			var text = getIsFntLayer(curNode);
 			if(text) {
 				node.fntText = text;
