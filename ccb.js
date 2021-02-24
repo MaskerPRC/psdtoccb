@@ -195,7 +195,7 @@ CCB_CCSprite.prototype.getSpriteFrameXml = function() {
 		"<array>\n" +
 		"<string></string>\n" +
 		"<string>"+this.referResourcePath+"</string>\n" +
-		this.referResourcePathName !== "" ?("<string>"+this.referResourcePathName+"</string>\n" ):""+
+		(this.referResourcePathName !== "" ?("<string>"+this.referResourcePathName+"</string>\n" ):"")+
 		"</array>\n" +
 		"</dict>";
 	return frameAppendXml;
