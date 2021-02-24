@@ -331,6 +331,9 @@ var ccbPackage = function() {
 		file.close();
 	}
 };
+var fixPackageReferance = function() {
+	app.system("python3 fix.py");
+};
 //工具区--end
 
 //ps操作区--begin
@@ -504,6 +507,9 @@ var main = function() {
 
 	//二期内容：加入fnt字体导出
 	fntPackage();
+
+	//将引用中的相对引用 './'改为ccb项目规范格式exp:'server/ui3/'
+	fixPackageReferance();
 
 	//over
 	tempDocument.close(SaveOptions.DONOTSAVECHANGES);
