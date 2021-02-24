@@ -40,11 +40,8 @@ var plistRootPath = "./";
 
 //数据区--begin
 var fntPaths = [];
-fntPaths.indexOf = indexOf;
-var plistPaths = [];
-plistPaths.indexOf = indexOf;
+var plistPathes = []
 var ccbFiles = [];
-ccbFiles.indexOf = indexOf;
 var originDocumentName = "";
 //数据区--end
 
@@ -150,6 +147,13 @@ var typeOfNode = function(node) {
 	return nodeType;
 };
 var removeInvisibleLayers = function(doc) {
+	var nodeType = typeOfNode(doc);
+	if(nodeType === TypeNodeEnum.NODE_IS_EXCEPTION) {
+		doc.allLocked = false;
+		doc.visible = false;
+		return;
+	}
+
 	if(doc && doc.artLayers) {
 		for (var i = doc.artLayers.length - 1; i >= 0; i--) {
 			try {
@@ -167,6 +171,13 @@ var removeInvisibleLayers = function(doc) {
 	}
 }
 var invisibleLayers = function(doc){
+	var nodeType = typeOfNode(doc);
+	if(nodeType === TypeNodeEnum.NODE_IS_EXCEPTION) {
+		doc.allLocked = false;
+		doc.visible = false;
+		return;
+	}
+
 	if(doc && doc.artLayers) {
 		for (var i = doc.artLayers.length - 1; i >= 0; i--) {
 			doc.artLayers[i].allLocked = false;
@@ -177,11 +188,20 @@ var invisibleLayers = function(doc){
 		for (var i = doc.layerSets.length - 1; i >= 0; i--) {
 			doc.layerSets[i].allLocked = false;
 			doc.layerSets[i].visible = false;
-			invisibleLayers(doc.layerSets[i]);
+			if(nodeType !== TypeNodeEnum.NODE_IS_EXCEPTION) {
+				invisibleLayers(doc.layerSets[i]);
+			}
 		}
 	}
 }
 var visibleLayers = function(doc){
+	var nodeType = typeOfNode(doc);
+	if(nodeType === TypeNodeEnum.NODE_IS_EXCEPTION) {
+		doc.allLocked = false;
+		doc.visible = false;
+		return;
+	}
+
 	if(doc && doc.artLayers) {
 		for(var i=doc.artLayers.length-1;i>=0;i--) {
 			doc.artLayers[i].allLocked = true;
@@ -192,7 +212,10 @@ var visibleLayers = function(doc){
 		for (var i = doc.layerSets.length - 1; i >= 0; i--) {
 			doc.layerSets[i].allLocked = true;
 			doc.layerSets[i].visible = true;
-			visibleLayers(doc.layerSets[i]);
+			var nodeType = typeOfNode(doc.layerSets[i]);
+			if(nodeType !== TypeNodeEnum.NODE_IS_EXCEPTION) {
+				visibleLayers(doc.layerSets[i]);
+			}
 		}
 	}
 }
@@ -252,9 +275,12 @@ var replaceSpace = function(name) {
 };
 //打包plist
 var plistPackage = function() {
-	for (var index = 0; index < plistPaths.length; index++) {
+	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName);
+	for (var index = 0; index < plistPathes.length; index++) {
 		//调用脚本去打包，并删除原目录
-		app.system("python ");
+		var path = plistPathes[index];
+		alert("python3 plistPack.py "+ exportFolder+"/"+ path)
+		app.system("python3 "+"scriptPos"+"/plistPack.py "+ exportFolder+"/"+ path);
 	}
 };
 //打包fnt
@@ -319,15 +345,11 @@ var exportPng = function(spNode, isPlist, plistInfo) {
 				var plistName = plistInfo.name;
 				var prefix = plistInfo.prefix;
 				var plistPath = plistName;
-				// alert(plistName)
 				psExportTool(spNode, prefix+innerPlistName, plistPath);
 				// alert(JSON.stringify(innerPlistName));
 				// alert(JSON.stringify(innerPlistName));
 				// alert(plistPath);
 				//记录之后需要打包的字体目录
-				if(plistPaths.indexOf(plistPath) !== -1 ) {
-					plistPaths.push(plistPath);
-				}
 				break;
 		}
 	}
@@ -390,16 +412,6 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 
 			//2、创建子ccb内部Plist目录
 			var subCcbPlistName = fatherCcbName +"_" + nodeLayerName;
-			var folder = new Folder();
-			if(folder.exists) {
-				var files = folder.getFiles();
-				for(var i=files.length-1;i>=0;i--){
-					files[i].remove();
-				}
-				folder.remove();
-			}
-			new Folder(folder).create();
-
 			//3、建立新的ccb初始节点
 			var fileNode = new CCB_FileNode();
 			var ccbFileName = fatherCcbName +"_" + nodeLayerName;
@@ -409,7 +421,7 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			}
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
-			plistPaths.push(folder);
+			plistPathes.push(""+subCcbPlistName);
 			break;
 	}
 
@@ -431,7 +443,7 @@ var main = function() {
 	invisibleLayers(tempDocument);
 	var rootLayer = app.activeDocument.activeLayer;
 
-	//构建fntPaths，plistPaths，ccbFiles
+	//构建fntPaths，plistPathes，ccbFiles
 	var fileName = originDocumentName.name.slice(0, originDocumentName.name.indexOf("."));
 	// alert(fileName);
 
