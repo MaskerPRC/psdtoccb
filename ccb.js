@@ -181,6 +181,7 @@ var CCB_CCSprite = function(){
 	this.anchorY = 0.50;
 	this.type = "CCSprite";
 	this.referResourcePath = "";
+	this.referResourcePathName = "";
 };
 CCB_CCSprite.prototype = new CCB_CCNode();
 CCB_CCSprite.prototype.getSpriteFrameXml = function() {
@@ -194,6 +195,7 @@ CCB_CCSprite.prototype.getSpriteFrameXml = function() {
 		"<array>\n" +
 		"<string></string>\n" +
 		"<string>"+this.referResourcePath+"</string>\n" +
+		this.referResourcePathName !== "" ?("<string>"+this.referResourcePathName+"</string>\n" ):""+
 		"</array>\n" +
 		"</dict>";
 	return frameAppendXml;

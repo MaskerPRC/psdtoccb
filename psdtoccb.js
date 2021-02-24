@@ -45,6 +45,7 @@ var plistPathes = []
 var ccbFiles = [];
 var originDocumentName = "";
 var spriteSubfix = needPackagePlist?".plist":"";
+var projectPos = "";
 //数据区--end
 
 //工具区--begin
@@ -315,7 +316,7 @@ var ccbPackage = function() {
 	for (var index = 0; index < ccbFiles.length; index++) {
 		var ccb = ccbFiles[index];
 		var ccbFileContent = ccb.buildXmlNode();
-		var filePath = ccb.referResourcePath;
+		var filePath = ccb.referResourcePath1;
 		//将内容写出到文档
 		var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
 		var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
@@ -331,9 +332,40 @@ var ccbPackage = function() {
 		file.close();
 	}
 };
-var fixPackageReferance = function() {
-	app.system("python3 fix.py");
+
+var findProject = function() {
+	var projectPos = "";
+	var self = new Folder(originDocumentName).fsName;
+	var parent = new Folder(originDocumentName.parent).fsName;
+	var parent1 = parent.slice(0, parent.lastIndexOf("/"));
+	var parent2 = parent1.slice(0, parent1.lastIndexOf("/"));
+	var parent3 = parent2.slice(0, parent2.lastIndexOf("/"));
+
+	parent += "$";
+	parent1 += "$";
+	parent2 += "$";
+	parent3 += "$";
+	parent4 += "$";
+
+	if(parent4.indexOf("Resources$") !== -1) {
+		projectPos = self.slice(parent4.length, self.lastIndexOf("."));
+	}
+	if(parent3.indexOf("Resources$") !== -1) {
+		projectPos = self.slice(parent3.length, self.lastIndexOf("."));
+	}
+	if(parent2.indexOf("Resources$") !== -1) {
+		projectPos = self.slice(parent2.length, self.lastIndexOf("."));
+	}
+	if(parent1.indexOf("Resources$") !== -1) {
+		projectPos = self.slice(parent1.length, self.lastIndexOf("."));
+	}
+	if(parent.indexOf("Resources$") !== -1) {
+		projectPos = self.slice(parent.length, self.lastIndexOf("."));
+	}
+
+	return projectPos;
 };
+
 //工具区--end
 
 //ps操作区--begin
@@ -420,7 +452,8 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//2、将 单张图片 或者 node集合图片 导出到所属ccbplist目录
 			var plistPath = ccbPlistName;
 			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: ccbPlistName+"_"+resPrefixName});
-			node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			node.referResourcePath = projectPos+"/"+ccbPlistName+spriteSubfix;
+			node.referResourcePathName = ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			break;
 		case TypeNodeEnum.NODE_IS_FONT_LB_NUM:
 		case TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS:
@@ -450,7 +483,7 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 
 			//2、bg图片不需要倒入到plist
 			exportPng(curNode, false, {name: nodeLayerName, prefix: ccbPlistName+"_"+resPrefixName});
-			node.referResourcePath = "./" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			node.referResourcePath = projectPos+"/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			break;
 		case TypeNodeEnum.NODE_IS_CCB:
 			//子ccb
@@ -466,13 +499,14 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//3、建立新的ccb初始节点
 			var fileNode = new CCB_FileNode();
 			var ccbFileName = fatherCcbName +"_" + nodeLayerName;
-			fileNode.referResourcePath = ccbFileName + ".ccb";
+			fileNode.referResourcePath = projectPos+"/"+ccbFileName + ".ccb";
+			fileNode.referResourcePath1 = ccbFileName + ".ccb";
 			for(var i=curNode && curNode.layers && curNode.layers.length-1; i>=0 ; i--) {
 				forAllNode(curNode.layers[i], subCcbPlistName, "", fileNode);
 			}
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
-			node.referResourcePath = "./"+fatherCcbName +"_"+ nodeLayerName + ".ccb";
+			node.referResourcePath = projectPos+"/"+fatherCcbName +"_"+ nodeLayerName + ".ccb";
 			plistPathes.push(""+subCcbPlistName);
 			break;
 	}
@@ -498,6 +532,7 @@ var main = function() {
 	//构建fntPaths，plistPathes，ccbFiles
 	var fileName = originDocumentName.name.slice(0, originDocumentName.name.indexOf("."));
 	// alert(fileName);
+	projectPos = findProject();
 
 	forAllNode(rootLayer, fileName, "");
 
@@ -509,7 +544,7 @@ var main = function() {
 	fntPackage();
 
 	//将引用中的相对引用 './'改为ccb项目规范格式exp:'server/ui3/'
-	fixPackageReferance();
+	// fixPackageReferance();
 
 	//over
 	tempDocument.close(SaveOptions.DONOTSAVECHANGES);
