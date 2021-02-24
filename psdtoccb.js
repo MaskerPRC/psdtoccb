@@ -21,6 +21,7 @@ var indexOf = function(one){
 var gapChar = "@";
 var fntRootPath = "./fnt/";
 var plistRootPath = "./";
+var needPackagePlist = 1;
 // var ccbNeedAttrMap = {
 // 	map: {},
 // 	build: function() {
@@ -43,6 +44,7 @@ var fntPaths = [];
 var plistPathes = []
 var ccbFiles = [];
 var originDocumentName = "";
+var spriteSubfix = needPackagePlist?".plist":"";
 //数据区--end
 
 //工具区--begin
@@ -275,15 +277,17 @@ var replaceSpace = function(name) {
 };
 //打包plist
 var plistPackage = function() {
-	var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
-	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
-	var thisFile  = new File($.fileName).parent;
-	for (var index = 0; index < plistPathes.length; index++) {
-		//调用脚本去打包，并删除原目录
-		var path = plistPathes[index];
+	if(needPackagePlist) {
+		var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
+		var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
+		var thisFile  = new File($.fileName).parent;
+		for (var index = 0; index < plistPathes.length; index++) {
+			//调用脚本去打包，并删除原目录
+			var path = plistPathes[index];
 
-		// alert("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName)
-		app.system("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName);
+			// alert("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName)
+			app.system("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName);
+		}
 	}
 };
 //打包fnt
@@ -320,6 +324,9 @@ var ccbPackage = function() {
 var exportPng = function(spNode, isPlist, plistInfo) {
 	if(!isPlist) {
 		//直接导出到根节点
+		// var name = plistInfo.name;
+		// var prefix = plistInfo.prefix;
+		// psExportTool(spNode, prefix+name);
 	}
 	//需要导入到plist或者fnt
 	else {
@@ -384,12 +391,11 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			break;
 		case TypeNodeEnum.NODE_IS_SP:
 		case TypeNodeEnum.NODE_IS_ALL:
-		case TypeNodeEnum.NODE_IS_BG_SP:
 			//layer图片：
 			//1、构建sp节点
 			node = new CCB_CCSprite();
 			node.displayName = nodeLayerName;
-			node.referResourcePath = "./"+ccbPlistName + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			var x = getLayerX(curNode);
 			var y = getLayerY(curNode);
 			node.x = x;
@@ -402,6 +408,24 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//2、将 单张图片 或者 node集合图片 导出到所属ccbplist目录
 			var plistPath = ccbPlistName;
 			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: ccbPlistName+"_"+resPrefixName});
+			break;
+		case TypeNodeEnum.NODE_IS_BG_SP:
+			//layer图片：
+			//1、构建bg节点
+			node = new CCB_CCSprite();
+			node.displayName = nodeLayerName;
+			node.referResourcePath = "./" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			var x = getLayerX(curNode);
+			var y = getLayerY(curNode);
+			node.x = x;
+			node.y = y;
+
+			if(nodeType === TypeNodeEnum.NODE_IS_ALL) {
+				visibleLayers(curNode);
+			}
+
+			//2、bg图片不需要倒入到plist
+			exportPng(curNode, false, {name: nodeLayerName, prefix: ccbPlistName+"_"+resPrefixName});
 			break;
 		case TypeNodeEnum.NODE_IS_CCB:
 			//子ccb
