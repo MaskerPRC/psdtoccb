@@ -275,12 +275,15 @@ var replaceSpace = function(name) {
 };
 //打包plist
 var plistPackage = function() {
-	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName);
+	var sceneName = originDocumentName.name.substring(0, originDocumentName.name.indexOf("."));
+	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
+	var thisFile  = new File($.fileName).parent;
 	for (var index = 0; index < plistPathes.length; index++) {
 		//调用脚本去打包，并删除原目录
 		var path = plistPathes[index];
-		alert("python3 plistPack.py "+ exportFolder+"/"+ path)
-		app.system("python3 "+"scriptPos"+"/plistPack.py "+ exportFolder+"/"+ path);
+
+		// alert("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName)
+		app.system("python3 "+thisFile.fsName+"/plistPack.py "+exportFolder+"/"+ path+" "+thisFile.fsName);
 	}
 };
 //打包fnt

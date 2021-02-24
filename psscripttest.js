@@ -1,13 +1,12 @@
 #include "json2.js";
 
 var main = function() {
-	for (var key in app) {
-		try{
-			alert(JSON.stringify(key));
-			alert(JSON.stringify(app[key]));
-		} catch(e) {
-			continue;
-		}
-	}
+	var originDocument = app.activeDocument;
+	originDocumentName = originDocument.fullName;
+	var tempDocument = originDocument.duplicate();
+	app.activeDocument = tempDocument;
+	var sceneName = originDocument.name.substring(0, originDocumentName.name.indexOf("."));
+	var exportFolder = new Folder(new Folder(originDocumentName.parent).fsName + "/" + sceneName);
+	alert(exportFolder)
 }
 main();

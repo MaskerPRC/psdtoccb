@@ -12,9 +12,11 @@ def Purple(str):
 def Green(str):
     return "\033[32m%s\033[0m"%(str)
 
-TexturePackerPath = "./TexturePacker.app/Contents/MacOS/TexturePacker"
+TexturePackerPath = "/TexturePacker.app/Contents/MacOS/TexturePacker"
+folder = ""
 def CheckTexturePacker():
-    if not os.path.exists(TexturePackerPath):
+    if not os.path.exists(folder+TexturePackerPath):
+        print(1)
         exit(-1)
 
 def TexturePackerPack(fullpath, outputPlist, maxSize):
@@ -25,7 +27,7 @@ def TexturePackerPack(fullpath, outputPlist, maxSize):
     else:
         outputPng = outputPlist.replace(".plist", ".png")
         redirPipe = ""
-    cmd = (TexturePackerPath + " --smart-update " + \
+    cmd = (folder+TexturePackerPath + " --smart-update " + \
         "--texture-format png " + \
         "--format cocos2d " + \
         "--data \"%s\" " + \
@@ -77,8 +79,11 @@ def CheckFolder(fullpath):
 
 if __name__ == "__main__":
     fullpath = sys.argv[1]
+    folder = sys.argv[2]
     CheckTexturePacker()
     CheckFolder(fullpath)
     ret = PackTextureToPlist(fullpath)
     if ret == 0 :
         shutil.rmtree(fullpath)
+
+
