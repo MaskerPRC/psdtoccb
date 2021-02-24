@@ -76,7 +76,7 @@ var getLayerX = function(node, fatherNode) {
 };
 var getLayerY = function(node, fatherNode) {
 	if(!fatherNode) {
-		return 200-node.bounds[1].value;
+		return 500-node.bounds[1].value;
 	} else {
 		return 200-node.bounds[1].value - getLayerY(fatherNode);
 	}
@@ -415,10 +415,6 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			node = new CCB_CCSprite();
 			node.displayName = nodeLayerName;
 			node.referResourcePath = "./" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
-			var x = getLayerX(curNode);
-			var y = getLayerY(curNode);
-			node.x = x;
-			node.y = y;
 
 			if(nodeType === TypeNodeEnum.NODE_IS_ALL) {
 				visibleLayers(curNode);
