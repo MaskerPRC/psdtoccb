@@ -210,6 +210,7 @@ var CCB_CCLabelBMFont = function(){
 	CCB_CCNode.call(this);
 	this.type = "CCSprite";
 	this.referResourcePath = "";
+	this.fntText = "NO TEXT";
 };
 CCB_CCLabelBMFont.prototype = new CCB_CCNode();
 CCB_CCLabelBMFont.prototype.getFntFileXml = function() {

@@ -60,6 +60,9 @@ var getLayerName = function(layer) {
 	return layerName;
 };
 var getLayerType = function(layer) {
+	if(getIsFntLayer(layer)) {
+		return TypeLayerEnum.LAYER_IS_FONT;
+	}
 	if (layer.layers && layer.layers.length > 0) {
 		return TypeLayerEnum.LAYER_IS_NODE;
 	}
@@ -143,6 +146,9 @@ var typeOfNode = function(node) {
 				break;
 			case TypeLayerEnum.LAYER_IS_SP:
 				nodeType = TypeNodeEnum.NODE_IS_SP;
+				break;
+			case TypeLayerEnum.LAYER_IS_FONT:
+				nodeType = TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS;
 				break;
 		}
 	}
@@ -395,7 +401,6 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//1、构建sp节点
 			node = new CCB_CCSprite();
 			node.displayName = nodeLayerName;
-			node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			var x = getLayerX(curNode);
 			var y = getLayerY(curNode);
 			node.x = x;
@@ -408,13 +413,31 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			//2、将 单张图片 或者 node集合图片 导出到所属ccbplist目录
 			var plistPath = ccbPlistName;
 			exportPng(curNode, !!plistPath, {name: plistPath, type: TypePlistEnum.PLIST_IS_SP, prefix: ccbPlistName+"_"+resPrefixName});
+			node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			break;
+		case TypeNodeEnum.NODE_IS_FONT_LB_NUM:
+		case TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS:
+			//字体文件
+			// 1、构建字体节点
+			node = new CCB_CCLabelBMFont();
+			node.displayName = nodeLayerName;
+			// node.referResourcePath = "./"+ccbPlistName+spriteSubfix + "/" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
+			var x = getLayerX(curNode);
+			var y = getLayerY(curNode);
+			node.x = x;
+			node.y = y;
+			var text = getIsFntLayer(curNode);
+			if(text) {
+				node.fntText = text;
+			}
+
+			// 2、导出字体文件
 			break;
 		case TypeNodeEnum.NODE_IS_BG_SP:
 			//layer图片：
 			//1、构建bg节点
 			node = new CCB_CCSprite();
 			node.displayName = nodeLayerName;
-			node.referResourcePath = "./" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 
 			if(nodeType === TypeNodeEnum.NODE_IS_ALL) {
 				visibleLayers(curNode);
@@ -422,6 +445,7 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 
 			//2、bg图片不需要倒入到plist
 			exportPng(curNode, false, {name: nodeLayerName, prefix: ccbPlistName+"_"+resPrefixName});
+			node.referResourcePath = "./" + ccbPlistName+"_"+resPrefixName + nodeLayerName + ".png";
 			break;
 		case TypeNodeEnum.NODE_IS_CCB:
 			//子ccb
@@ -431,7 +455,6 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			var fatherCcbName = ccbPlistName;
 
 			node.displayName = nodeLayerName;
-			node.referResourcePath = "./"+fatherCcbName +"_"+ nodeLayerName + ".ccb";
 
 			//2、创建子ccb内部Plist目录
 			var subCcbPlistName = fatherCcbName +"_" + nodeLayerName;
@@ -444,6 +467,7 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 			}
 			//4、记录file数组和plist文件夹数据
 			ccbFiles.push(fileNode);
+			node.referResourcePath = "./"+fatherCcbName +"_"+ nodeLayerName + ".ccb";
 			plistPathes.push(""+subCcbPlistName);
 			break;
 	}
@@ -474,8 +498,10 @@ var main = function() {
 
 	//打包plist，fnt，ccb
 	plistPackage();
-	fntPackage();
 	ccbPackage();
+
+	//二期内容：加入fnt字体导出
+	fntPackage();
 
 	//over
 	tempDocument.close(SaveOptions.DONOTSAVECHANGES);
