@@ -46,6 +46,8 @@ var ccbFiles = [];
 var originDocumentName = "";
 var spriteSubfix = needPackagePlist?".plist":"";
 var projectPos = "";
+var docWidth = 0;
+var docHeight = 0;
 //数据区--end
 
 //工具区--begin
@@ -105,11 +107,11 @@ var getLayerRealY = function(node, realInfo) {
 		return;
 	}
 	if(nodeType !== TypeLayerEnum.LAYER_IS_NODE) {
-		var minY = node.bounds[1].value
+		var minY = node.bounds[3].value
 		if(realInfo.min > minY) {
 			realInfo.min = minY;
 		}
-		var maxY = node.bounds[3].value
+		var maxY = node.bounds[1].value
 		if(realInfo.max < maxY) {
 			realInfo.max = maxY;
 		}
@@ -128,36 +130,46 @@ var getLayerRealY = function(node, realInfo) {
 	}
 };
 var getLayerX = function(node, fatherNode) {
-	var type = getLayerType(node);
-	if(type === TypeLayerEnum.LAYER_IS_NODE) {
-		var realInfo = {
-			min: 0,
-			max: 0
-		}
-		getLayerRealX(node, realInfo);
-		return (realInfo.min + realInfo.max)/2;
-	} else {
-		return node.bounds[0].value
-	}
+	return getCorpBoundsCenter(node)[0];
 };
 var getLayerY = function(node, fatherNode) {
-	var type = getLayerType(node);
-	if(type === TypeLayerEnum.LAYER_IS_NODE) {
-		var realInfo = {
-			min: 0,
-			max: 0
-		}
-		getLayerRealY(node, realInfo);
-		return -((realInfo.min + realInfo.max)/2);
-	} else {
-		return -node.bounds[1].value
-	}
+	return getCorpBoundsCenter(node)[1];
 };
 var getLayerWidth = function(node) {
 
 };
 var getLayerHeight = function(node) {
 
+};
+var clampXToCanvas = function (num, axis) {
+	return Math.min( Math.max(num, 0), docWidth );
+};
+var clampYToCanvas = function (num, axis) {
+	return Math.min( Math.max(num, 0), docHeight );
+};
+var clampBoundsToCanvas = function (bounds) {
+	var x1 = clampXToCanvas(bounds[0]);
+	var y1 = clampYToCanvas(bounds[1]);
+	var x2 = clampXToCanvas(bounds[2]);
+	var y2 = clampYToCanvas(bounds[3]);
+
+	return [x1, y1, x2, y2];
+};
+var getBoundsValue = function (layer) {
+	return [layer.bounds[0].value, layer.bounds[1].value, layer.bounds[2].value, layer.bounds[3].value];
+};
+var getCorpBoundsCenter = function (layer) {
+	var clampBounds = clampBoundsToCanvas(getBoundsValue(layer));
+	var x1 = clampBounds[0];
+	var y1 = clampBounds[1];
+	var x2 = clampBounds[2];
+	var y2 = clampBounds[3];
+	var width = x2 - x1;
+	var height = y2 - y1;
+	var x = ( x1 + width / 2 );
+	var y = -( y1 + height / 2 );
+
+	return [x, y];
 };
 var getIsFntLayer = function(node) {
 	if(node.textItem && node.textItem.contents) {
@@ -210,6 +222,7 @@ var typeOfNode = function(node) {
 				nodeType = TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS;
 				break;
 			case "exp":
+			default:
 				nodeType = TypeNodeEnum.NODE_IS_EXCEPTION;
 				break;
 		}
@@ -592,6 +605,8 @@ var main = function() {
 	originDocumentName = originDocument.fullName;
 	var tempDocument = originDocument.duplicate();
 	app.activeDocument = tempDocument;
+	docWidth = originDocument.width.as("px");
+	docHeight = originDocument.height.as("px");
 
 	removeInvisibleLayers(tempDocument);
 	invisibleLayers(tempDocument);
