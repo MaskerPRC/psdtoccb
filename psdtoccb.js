@@ -71,18 +71,86 @@ var getLayerType = function(layer) {
 		return TypeLayerEnum.LAYER_IS_SP;
 	}
 };
+var getLayerRealX = function(node, realInfo) {
+	var nodeType = typeOfNode(node);
+	if(nodeType === TypeNodeEnum.NODE_IS_EXCEPTION || !node.visible) {
+		return;
+	}
+	if(nodeType !== TypeLayerEnum.LAYER_IS_NODE) {
+		var minX = node.bounds[0].value
+		if(realInfo.min > minX) {
+			realInfo.min = minX;
+		}
+		var maxX = node.bounds[2].value
+		if(realInfo.max < maxX) {
+			realInfo.max = maxX;
+		}
+		return;
+	}
+
+	if(node && node.artLayers) {
+		for(var i=node.artLayers.length-1;i>=0;i--) {
+			getLayerRealX(node.artLayers[i]);
+		}
+	}
+	if(node && node.layerSets) {
+		for (var i = node.layerSets.length - 1; i >= 0; i--) {
+			getLayerRealX(node.layerSets[i]);
+		}
+	}
+};
+var getLayerRealY = function(node, realInfo) {
+	var nodeType = typeOfNode(node);
+	if(nodeType === TypeNodeEnum.NODE_IS_EXCEPTION || !node.visible) {
+		return;
+	}
+	if(nodeType !== TypeLayerEnum.LAYER_IS_NODE) {
+		var minY = node.bounds[1].value
+		if(realInfo.min > minY) {
+			realInfo.min = minY;
+		}
+		var maxY = node.bounds[3].value
+		if(realInfo.max < maxY) {
+			realInfo.max = maxY;
+		}
+		return;
+	}
+
+	if(node && node.artLayers) {
+		for(var i=node.artLayers.length-1;i>=0;i--) {
+			getLayerRealY(node.artLayers[i]);
+		}
+	}
+	if(node && node.layerSets) {
+		for (var i = node.layerSets.length - 1; i >= 0; i--) {
+			getLayerRealY(node.layerSets[i]);
+		}
+	}
+};
 var getLayerX = function(node, fatherNode) {
-	if(!fatherNode) {
-		return node.bounds[0].value;
+	var type = getLayerType(node);
+	if(type === TypeLayerEnum.LAYER_IS_NODE) {
+		var realInfo = {
+			min: 0,
+			max: 0
+		}
+		getLayerRealX(node, realInfo);
+		return (realInfo.min + realInfo.max)/2;
 	} else {
-		return node.bounds[0].value - getLayerX(fatherNode);
+		return node.bounds[0].value
 	}
 };
 var getLayerY = function(node, fatherNode) {
-	if(!fatherNode) {
-		return 500-node.bounds[1].value;
+	var type = getLayerType(node);
+	if(type === TypeLayerEnum.LAYER_IS_NODE) {
+		var realInfo = {
+			min: 0,
+			max: 0
+		}
+		getLayerRealY(node, realInfo);
+		return -((realInfo.min + realInfo.max)/2);
 	} else {
-		return 200-node.bounds[1].value - getLayerY(fatherNode);
+		return -node.bounds[1].value
 	}
 };
 var getLayerWidth = function(node) {
