@@ -129,7 +129,7 @@ var getBoundsValue = function (layer) {
 	return [layer.bounds[0].value, layer.bounds[1].value, layer.bounds[2].value, layer.bounds[3].value];
 };
 var getCorpBoundsCenter = function (layer) {
-	var clampBounds = clampBoundsToCanvas(getBoundsValue(layer));
+	var clampBounds = getBoundsValue(layer)
 	var x1 = clampBounds[0];
 	var y1 = clampBounds[1];
 	var x2 = clampBounds[2];
