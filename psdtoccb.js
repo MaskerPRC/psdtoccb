@@ -360,7 +360,7 @@ var findProject = function() {
 		projectPos = self.slice(parent1.length, self.lastIndexOf("."));
 	}
 	if(parent.indexOf("Resources$") !== -1) {
-		projectPos = self.slice(parent.length, self.lastIndexOf("."));
+		projectPos = "";
 	}
 
 	return projectPos;
