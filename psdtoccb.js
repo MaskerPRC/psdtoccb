@@ -6,15 +6,6 @@
 //JS库--begin
 #include "json2.js";
 #include "ccb.js";
-var debugFrom = 1;
-var indexOf = function(one){
-	for (var index = 0; index < fntPaths.length; index++) {
-		if(one === fntPaths[index]) {
-			return i;
-		}
-	}
-	return -1;
-};
 //JS库--end
 
 //配置区--begin
@@ -22,21 +13,6 @@ var gapChar = "@";
 var fntRootPath = "./fnt/";
 var plistRootPath = "./";
 var needPackagePlist = 1;
-// var ccbNeedAttrMap = {
-// 	map: {},
-// 	build: function() {
-// 		this.map[TypeNodeEnum.NODE_IS_NODE] = ["displayName", "x", "y", "visible", "width", "height", "anchorX", "anchorY", "scaleX", "scaleY", "rotation"];
-// 		this.map[TypeNodeEnum.NODE_IS_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_FONT_LB_NUM] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_FONT_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_BUTTON] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_BG_SP] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_ALL] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 		this.map[TypeNodeEnum.NODE_IS_FONT_LB_ALL_CHARS] = this.map[TypeNodeEnum.NODE_IS_NODE];
-// 	}
-// };
-//
-// var CCB_NEED_ATTR_MAP = ccbNeedAttrMap.build();
 //配置区--end
 
 //数据区--begin
@@ -44,7 +20,7 @@ var fntPaths = [];
 var plistPathes = []
 var ccbFiles = [];
 var originDocumentName = "";
-var spriteSubfix = needPackagePlist?".plist":"";
+var spriteSubfix = needPackagePlist?".plist":plistRootPath;
 var projectPos = "";
 var docWidth = 0;
 var docHeight = 0;
@@ -134,12 +110,6 @@ var getLayerX = function(node, fatherNode) {
 };
 var getLayerY = function(node, fatherNode) {
 	return getCorpBoundsCenter(node)[1];
-};
-var getLayerWidth = function(node) {
-
-};
-var getLayerHeight = function(node) {
-
 };
 var clampXToCanvas = function (num, axis) {
 	return Math.min( Math.max(num, 0), docWidth );
@@ -363,9 +333,6 @@ var psBuildAllFnt = function(node, path) {
 	else if(type === TypeNodeEnum.NODE_IS_FONT_SP_ALL_CHARS) {
 
 	}
-};
-var getIsVisibleLayer = function(node) {
-	return !!node.visible;
 };
 var replaceSpace = function(name) {
 	return name.replace(/[:\/\\*\?\"\<\>\| ]/g, "_")
@@ -599,7 +566,6 @@ var forAllNode = function(curNode, ccbPlistName, resPrefixName, fatherNode) {
 
 	curNode.visible = false;
 };
-
 var main = function() {
 	var originDocument = app.activeDocument;
 	originDocumentName = originDocument.fullName;
@@ -626,33 +592,9 @@ var main = function() {
 	//二期内容：加入fnt字体导出
 	fntPackage();
 
-	//将引用中的相对引用 './'改为ccb项目规范格式exp:'server/ui3/'
-	// fixPackageReferance();
-
 	//over
 	tempDocument.close(SaveOptions.DONOTSAVECHANGES);
 	app.activeDocument = originDocument;
 };
-
-var test = function() {
-	var ccbNode = new CCB_FileNode();
-	var rootNode = new CCB_RootNode();
-	var node = new CCB_CCNode();
-	var node1 = new CCB_CCNode();
-	var node2 = new CCB_CCNode();
-	var node3 = new CCB_CCNode();
-	ccbNode.children.push(node);
-	ccbNode.children.push(node1);
-	ccbNode.children.push(node2);
-	ccbNode.children.push(node3);
-
-	ccbFiles.push(ccbNode);
-
-	ccbPackage();
-};
-// try {
 main();
-// }catch(e) {
-// 	alert(JSON.stringify(e));
-// }
 //main区--end
